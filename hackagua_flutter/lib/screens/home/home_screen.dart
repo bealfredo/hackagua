@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../providers/auth_provider.dart';
 import 'package:provider/provider.dart';
+import '../login/login_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final Function(int)? onNavigate;
@@ -143,9 +144,20 @@ class HomeScreen extends StatelessWidget {
                       child: const Text('Cancelar'),
                     ),
                     TextButton(
-                      onPressed: () {
-                        authProvider.logout();
+                      onPressed: () async {
+                        // Fecha o diálogo primeiro
                         Navigator.pop(context);
+                        // Limpa a sessão
+                        await authProvider.logout();
+                        // Redireciona para a tela de login removendo o histórico
+                        if (context.mounted) {
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (_) => const LoginScreen(),
+                            ),
+                            (_) => false,
+                          );
+                        }
                       },
                       child: const Text('Sair'),
                     ),

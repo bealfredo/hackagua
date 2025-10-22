@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../../providers/auth_provider.dart';
+import '../home/home_screen.dart';
+import '../onboarding/onboarding_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -248,6 +251,22 @@ class _LoginScreenState extends State<LoginScreen> {
                                             backgroundColor: Colors.red,
                                           ),
                                         );
+                                      }
+                                      if (success && mounted) {
+                                        final userId = authProvider.user?.id;
+                                        if (userId != null) {
+                                          final box = await Hive.openBox('auth_box');
+                                          final seen = box.get('onboarding_seen_$userId') == true;
+                                          final next = seen
+                                              ? const HomeScreen()
+                                              : OnboardingScreen(userId: userId);
+
+                                          // Replace whole stack so back button doesn't return to login
+                                          Navigator.of(context).pushAndRemoveUntil(
+                                            MaterialPageRoute(builder: (_) => next),
+                                            (_) => false,
+                                          );
+                                        }
                                       }
                                     },
                               child: authProvider.isLoading
