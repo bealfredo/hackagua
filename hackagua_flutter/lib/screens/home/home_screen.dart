@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hackagua_flutter/models/enums.dart';
 import 'package:hackagua_flutter/services/detection_service.dart';
+import 'package:hackagua_flutter/services/api_service.dart';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -12,14 +13,26 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   DetectionService? _detectionService;
+  final ApiService _apiService = ApiService();
   String _statusMessage = "Iniciando...";
   TipoEvento? _lastEvent;
   double _lastDuration = 0.0;
+  bool _apiConnected = false;
 
   @override
   void initState() {
     super.initState();
     _initializeService();
+    _checkApiConnection();
+  }
+
+  Future<void> _checkApiConnection() async {
+    final isConnected = await _apiService.testConnection();
+    if (mounted) {
+      setState(() {
+        _apiConnected = isConnected;
+      });
+    }
   }
 
   Future<void> _initializeService() async {
@@ -126,6 +139,24 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 formattedDate,
                 style: TextStyle(color: Colors.grey[600], fontSize: 16),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Icon(
+                    Icons.circle,
+                    size: 8,
+                    color: _apiConnected ? Colors.green : Colors.red,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    _apiConnected ? 'API Conectada' : 'API Desconectada',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

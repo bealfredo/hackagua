@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:hackagua_flutter/models/enums.dart';
+import 'package:hackagua_flutter/services/api_service.dart';
 // [CORREÇÃO] Removido o import 'audio_inference_service.dart' que causava o conflito de 'Interpreter'.
 // import 'package:hackagua_flutter/services/audio_inference_service.dart';
 import 'package:path_provider/path_provider.dart';
@@ -14,6 +15,7 @@ import 'package:wav/wav.dart';
 class DetectionService {
   // [CORREÇÃO] A classe 'Record' é abstrata. Usamos a implementação 'AudioRecorder'.
   final AudioRecorder _audioRecorder = AudioRecorder();
+  final ApiService _apiService = ApiService();
   Interpreter? _interpreter;
   List<String>? _labels;
   Timer? _recordingTimer;
@@ -66,6 +68,12 @@ class DetectionService {
           final result = await stopRecordingAndClassify();
           if (result != null) {
             onEvent(result, duration);
+            // Envia o evento para a API
+            _apiService.sendWaterEvent(
+              tipoEvento: result,
+              duracao: duration,
+              timestamp: DateTime.now(),
+            );
           }
         }
         _startIntervalRecording();
