@@ -101,11 +101,13 @@ Future<http.Response> updateUsuario(Map<String, dynamic> usuarioContato) async {
         : 'Bearer $token';
   }
 
-  final response = await http.patch(
+  final response = await http
+      .patch(
     url,
     headers: headers,
-  body: jsonEncode(usuarioContato),
-  );
+    body: jsonEncode(usuarioContato),
+  )
+      .timeout(const Duration(seconds: 20));
 
   return response;
 
@@ -148,7 +150,7 @@ Future<http.Response> uploadImagemUsuario(String userId, XFile imagem) async {
     request.files.add(multipartFile);
   }
 
-  final streamedResponse = await request.send();
+  final streamedResponse = await request.send().timeout(const Duration(seconds: 30));
   return http.Response.fromStream(streamedResponse);
 }
 
@@ -172,6 +174,8 @@ Future<http.Response> getUsuarioByToken() async {
         : 'Bearer $token';
   }
 
-  final response = await http.get(url, headers: headers);
+  final response = await http
+      .get(url, headers: headers)
+      .timeout(const Duration(seconds: 15));
   return response;
 }
