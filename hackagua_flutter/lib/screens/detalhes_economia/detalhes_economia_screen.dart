@@ -22,7 +22,9 @@ class DetalhesEconomiaScreen extends StatelessWidget {
     // Calcular economias
     final deteccao = DeteccaoDesperdicio(
       tipo: tipoDesperdicio,
-      dataHora: DateTime.now(),
+      data: DateTime.now(),
+      duracaoSegundos: 300, // 5 minutos padrão
+      gastoLitros: 60, // ~12L/min * 5min
     );
 
     final economia = CalculoEconomiaService.calcularEconomiaDesperdicio(

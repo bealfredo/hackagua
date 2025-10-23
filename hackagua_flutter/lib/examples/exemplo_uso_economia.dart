@@ -12,8 +12,9 @@ void exemploDeteccaoBanhoLongo() {
   // Criar detecção
   final deteccao = DeteccaoDesperdicio(
     tipo: TipoDesperdicio.banhoLongo,
-    dataHora: DateTime.now(),
-    observacao: 'Banho detectado com duração de 15 minutos',
+    data: DateTime.now(),
+    duracaoSegundos: 900, // 15 minutos
+    gastoLitros: 180, // ~12L/min * 15min
   );
   
   // Calcular economia
@@ -32,9 +33,24 @@ void exemploEconomiaMensal() {
   
   // Simular detecções do dia
   final deteccoesHoje = [
-    DeteccaoDesperdicio(tipo: TipoDesperdicio.banhoLongo, dataHora: DateTime.now()),
-    DeteccaoDesperdicio(tipo: TipoDesperdicio.torneiraAberta, dataHora: DateTime.now()),
-    DeteccaoDesperdicio(tipo: TipoDesperdicio.banhoLongo, dataHora: DateTime.now()),
+    DeteccaoDesperdicio(
+      tipo: TipoDesperdicio.banhoLongo,
+      data: DateTime.now(),
+      duracaoSegundos: 900, // 15 minutos
+      gastoLitros: 180, // ~12L/min * 15min
+    ),
+    DeteccaoDesperdicio(
+      tipo: TipoDesperdicio.torneiraAberta,
+      data: DateTime.now(),
+      duracaoSegundos: 300, // 5 minutos
+      gastoLitros: 60, // ~12L/min * 5min
+    ),
+    DeteccaoDesperdicio(
+      tipo: TipoDesperdicio.banhoLongo,
+      data: DateTime.now(),
+      duracaoSegundos: 900, // 15 minutos
+      gastoLitros: 180, // ~12L/min * 15min
+    ),
   ];
   
   double totalLitros = 0;
@@ -73,7 +89,7 @@ void exemploCorrigirVazamento() {
   
   debugPrint('🔧 Situação: Torneira pingando constantemente');
   debugPrint('');
-  debugPrint('💧 Desperdício por dia: ${TipoDesperdicio.torneiraPingando.consumoMedioLitros} litros');
+  debugPrint('💧 Desperdício estimado: 2 litros por ocorrência');
   debugPrint('');
   debugPrint('📊 SE VOCÊ CONSERTAR:');
   debugPrint('  • Economia mensal: ${CalculoEconomiaService.formatarLitros(economiaMensal.litrosEconomizadosMensal)}');
@@ -104,7 +120,7 @@ void exemploComparacao() {
     
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     debugPrint('🚰 ${tipo.nome}');
-    debugPrint('   Consumo/dia: ${tipo.consumoMedioLitros} L');
+    debugPrint('   Economia mensal: ${CalculoEconomiaService.formatarLitros(mensal.litrosEconomizadosMensal)}');
     debugPrint('   Custo anual: ${CalculoEconomiaService.formatarReais(mensal.economiaAnual)}');
     debugPrint('');
   }
@@ -195,18 +211,21 @@ void exemploMultiplosAlertas() {
   final deteccoes = [
     DeteccaoDesperdicio(
       tipo: TipoDesperdicio.banhoLongo,
-      dataHora: DateTime(2025, 10, 23, 7, 30),
-      observacao: 'Banho da manhã - 15 minutos',
+      data: DateTime(2025, 10, 23, 7, 30),
+      duracaoSegundos: 900, // 15 minutos
+      gastoLitros: 180, // ~12L/min * 15min
     ),
     DeteccaoDesperdicio(
       tipo: TipoDesperdicio.torneiraAberta,
-      dataHora: DateTime(2025, 10, 23, 8, 15),
-      observacao: 'Torneira aberta durante escovação',
+      data: DateTime(2025, 10, 23, 8, 15),
+      duracaoSegundos: 180, // 3 minutos
+      gastoLitros: 36, // ~12L/min * 3min
     ),
     DeteccaoDesperdicio(
       tipo: TipoDesperdicio.vazamentoNoturno,
-      dataHora: DateTime(2025, 10, 23, 2, 30),
-      observacao: 'Som de água às 2:30 AM',
+      data: DateTime(2025, 10, 23, 2, 30),
+      duracaoSegundos: 3600, // 1 hora detectado
+      gastoLitros: 50, // vazamento constante
     ),
   ];
   

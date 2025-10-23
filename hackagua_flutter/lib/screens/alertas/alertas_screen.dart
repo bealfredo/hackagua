@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hackagua_flutter/models/desperdicio_agua.dart';
-import 'package:hackagua_flutter/screens/detalhes_economia_screen.dart';
+import 'package:hackagua_flutter/screens/detalhes_economia/detalhes_economia_screen.dart';
 import 'package:hackagua_flutter/services/calculo_economia_service.dart';
 
 class AlertasScreen extends StatelessWidget {
@@ -255,7 +255,9 @@ class AlertasScreen extends StatelessWidget {
     // Criar uma detecção de desperdício
     final deteccao = DeteccaoDesperdicio(
       tipo: tipoDesperdicio,
-      dataHora: DateTime.now(),
+      data: DateTime.now(),
+      duracaoSegundos: 300, // 5 minutos padrão
+      gastoLitros: 60, // ~12L/min * 5min
     );
 
     // Calcular economia

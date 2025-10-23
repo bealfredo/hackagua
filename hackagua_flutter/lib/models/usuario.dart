@@ -1,77 +1,25 @@
 class Usuario {
-  int id;
-  String nome;
-  String sobrenome;
-  List<String> imagens;
-  String imagemPrincipal;
-  String login;
-  String cpf;
-  DateTime dataNascimento;
-
-  String? corRaca;
-  String? uf;
-  String? cidade;
-  String? bairro;
-  String? cep;
-  String? logradouro;
-  String? numero;
-  String? complemento;
-  String? emailPessoal;
-  String? telefoneCelular1;
-  String? telefoneCelular2;
-  String? telefoneFixo;
+  int? id; // Long id na UML
+  String nome; // String nome
+  String email; // String email
+  String senha; // String senha
+  double metaDiaria; // double metaDiaria
 
   Usuario({
-    required this.id,
+    this.id,
     required this.nome,
-    required this.sobrenome,
-    required this.imagens,
-    required this.imagemPrincipal,
-    required this.login,
-    required this.cpf,
-    required this.dataNascimento,
-    this.corRaca,
-    this.uf,
-    this.cidade,
-    this.bairro,
-    this.cep,
-    this.logradouro,
-    this.numero,
-    this.complemento,
-    this.emailPessoal,
-    this.telefoneCelular1,
-    this.telefoneCelular2,
-    this.telefoneFixo,
+    required this.email,
+    required this.senha,
+    required this.metaDiaria,
   });
 
-  factory Usuario.fromJson(dynamic jsonData) {
-    // Garantir que estamos trabalhando com um Map
-    final json = jsonData as Map;
-
+  factory Usuario.fromJson(Map<String, dynamic> json) {
     return Usuario(
-      id: (json['id'] as num).toInt(),
+      id: json['id'],
       nome: json['nome'],
-      sobrenome: json['sobrenome'],
-      imagens: List<String>.from(json['imagens'] ?? []),
-      imagemPrincipal: json['imagemPrincipal'] ?? '',
-      login: json['login'],
-      cpf: json['cpf'],
-      dataNascimento: json['dataNascimento'] is DateTime
-          ? json['dataNascimento']
-          : DateTime.parse(json['dataNascimento']),
-      // Novos campos
-      corRaca: json['corRaca'],
-      uf: json['uf'],
-      cidade: json['cidade'],
-      bairro: json['bairro'],
-      cep: json['cep'],
-      logradouro: json['logradouro'],
-      numero: json['numero'],
-      complemento: json['complemento'],
-      emailPessoal: json['emailPessoal'],
-      telefoneCelular1: json['telefoneCelular1'],
-      telefoneCelular2: json['telefoneCelular2'],
-      telefoneFixo: json['telefoneFixo'],
+      email: json['email'],
+      senha: json['senha'],
+      metaDiaria: (json['metaDiaria'] as num).toDouble(),
     );
   }
 
@@ -79,24 +27,9 @@ class Usuario {
     return {
       'id': id,
       'nome': nome,
-      'sobrenome': sobrenome,
-      'imagens': imagens,
-      'imagemPrincipal': imagemPrincipal,
-      'login': login,
-      'cpf': cpf,
-      'dataNascimento': dataNascimento.toIso8601String(),
-      'corRaca': corRaca,
-      'uf': uf,
-      'cidade': cidade,
-      'bairro': bairro,
-      'cep': cep,
-      'logradouro': logradouro,
-      'numero': numero,
-      'complemento': complemento,
-      'emailPessoal': emailPessoal,
-      'telefoneCelular1': telefoneCelular1,
-      'telefoneCelular2': telefoneCelular2,
-      'telefoneFixo': telefoneFixo,
+      'email': email,
+      'senha': senha,
+      'metaDiaria': metaDiaria,
     };
   }
 }

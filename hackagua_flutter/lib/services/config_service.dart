@@ -1,16 +1,23 @@
+// lib/services/config_service.dart
+
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+// [CORREÇÃO] Agora importamos o modelo do arquivo que criamos no Passo 1
 import 'package:hackagua_flutter/models/configuracoes.dart';
 
+// [CORREÇÃO] A classe de modelo 'Configuracoes' foi REMOVIDA daqui.
+// Ela agora vive em seu próprio arquivo.
+
 class ConfigService {
-  final String _baseUrl = "https://api.escutadagua.com.br/v1";
+  // final String _baseUrl = "https://api.escutadagua.com.br/v1";
+  // TODO: Adicionar o token de autenticação quando integrar com API real
+  // final String _token = "SEU_TOKEN_AQUI";
 
   Future<Configuracoes> getConfiguracoes() async {
     // final url = Uri.parse('$_baseUrl/configuracoes');
     try {
       // **Simulação de API para testes (REMOVA ISSO EM PRODUÇÃO)**
-      // Vamos simular uma espera e uma resposta da API
       await Future.delayed(const Duration(milliseconds: 800));
       final simulacaoResposta = {
         "geofence": {
@@ -21,6 +28,7 @@ class ConfigService {
         "metaDiaria": 30,
         "privacidade": {"processarSoEmCasa": false, "descartarAudio": true},
       };
+      // Agora usamos o 'fromJson' do nosso modelo real
       return Configuracoes.fromJson(simulacaoResposta);
       // **Fim da Simulação**
 
@@ -50,7 +58,8 @@ class ConfigService {
   Future<void> salvarConfiguracoes(Configuracoes config) async {
     // final url = Uri.parse('$_baseUrl/configuracoes');
     try {
-      final body = jsonEncode(config.toJson()); // Usa o método toJson do modelo
+      // Usamos o método 'toJson' do nosso modelo real
+      final body = jsonEncode(config.toJson());
 
       // **Simulação de API para testes (REMOVA ISSO EM PRODUÇÃO)**
       await Future.delayed(const Duration(milliseconds: 500));

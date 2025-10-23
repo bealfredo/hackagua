@@ -1,6 +1,6 @@
-// lib/services/calculo_economia_service.dart
-
-import '../models/desperdicio_agua.dart';
+import 'package:hackagua_flutter/models/enums.dart';
+import 'package:hackagua_flutter/models/evento_agua.dart';
+import 'package:hackagua_flutter/models/desperdicio_agua.dart';
 
 /// Serviço para calcular economia de água e valores monetários
 /// baseado nas tarifas da BRK Ambiental no Tocantins
@@ -64,27 +64,73 @@ class CalculoEconomiaService {
     return calcularValorConsumo(metrosCubicos);
   }
 
-  /// Calcula economia baseada em uma detecção de desperdício
-  static ResultadoEconomia calcularEconomiaDesperdicio(DeteccaoDesperdicio deteccao) {
-    double litrosEconomizados = deteccao.litrosDesperdicados;
+  /// Calcula economia baseada em um evento de água que representa um desperdício
+  static ResultadoEconomia calcularEconomiaDesperdicio(dynamic evento) {
+    double litrosEconomizados;
+    
+    // Suporta tanto EventoAgua quanto DeteccaoDesperdicio
+    if (evento is EventoAgua) {
+      litrosEconomizados = evento.gastoLitros;
+    } else if (evento is DeteccaoDesperdicio) {
+      litrosEconomizados = evento.gastoLitros;
+    } else {
+      throw ArgumentError('Tipo de evento não suportado');
+    }
+    
     double valorEconomizado = calcularEconomiaReais(litrosEconomizados);
 
     return ResultadoEconomia(
       litrosEconomizados: litrosEconomizados,
-      metrosCubicosEconomizados: deteccao.metrosCubicosDesperdicados,
+      metrosCubicosEconomizados: litrosEconomizados / 1000,
       valorEconomizadoReais: valorEconomizado,
-      tipoDesperdicio: deteccao.tipo,
+      tipoEvento: evento is EventoAgua ? evento.tipo : null,
       dataCalculo: DateTime.now(),
     );
   }
 
   /// Calcula economia mensal estimada se o usuário corrigir o desperdício
   static ResultadoEconomiaMensal calcularEconomiaMensal(
-    TipoDesperdicio tipo, {
+    dynamic tipo, {
     int diasPorMes = 30,
     int ocorrenciasPorDia = 1,
+    double? consumoMedioLitros,
   }) {
-    double litrosPorOcorrencia = tipo.consumoMedioLitros;
+    double litrosPorOcorrencia;
+    
+    // Suporta tanto TipoEvento quanto TipoDesperdicio
+    if (consumoMedioLitros != null) {
+      litrosPorOcorrencia = consumoMedioLitros;
+    } else if (tipo is TipoDesperdicio) {
+      // Valores padrão para TipoDesperdicio
+      switch (tipo) {
+        case TipoDesperdicio.TORNEIRA_ABERTA:
+        case TipoDesperdicio.torneiraAberta:
+          litrosPorOcorrencia = 5.0;
+          break;
+        case TipoDesperdicio.BANHO_LONGO:
+        case TipoDesperdicio.banhoLongo:
+          litrosPorOcorrencia = 20.0;
+          break;
+        case TipoDesperdicio.VAZAMENTO:
+          litrosPorOcorrencia = 2.0;
+          break;
+        case TipoDesperdicio.vazamentoNoturno:
+          litrosPorOcorrencia = 50.0; // Vazamento contínuo à noite
+          break;
+        case TipoDesperdicio.torneiraPingando:
+          litrosPorOcorrencia = 2.0; // Gotejamento constante
+          break;
+        case TipoDesperdicio.DESCARGA:
+          litrosPorOcorrencia = 3.0;
+          break;
+        case TipoDesperdicio.DETECCAO_NOTURNA:
+          litrosPorOcorrencia = 1.0;
+          break;
+      }
+    } else {
+      throw ArgumentError('Tipo não suportado ou consumoMedioLitros não fornecido');
+    }
+    
     double litrosMensal = litrosPorOcorrencia * ocorrenciasPorDia * diasPorMes;
     double metrosCubicosMensal = litrosMensal / 1000;
     double valorMensal = calcularEconomiaReais(litrosMensal);
@@ -93,7 +139,7 @@ class CalculoEconomiaService {
       litrosEconomizadosMensal: litrosMensal,
       metrosCubicosEconomizadosMensal: metrosCubicosMensal,
       valorEconomizadoMensalReais: valorMensal,
-      tipoDesperdicio: tipo,
+      tipoEvento: tipo is TipoEvento ? tipo : null,
       ocorrenciasPorDia: ocorrenciasPorDia,
       diasCalculados: diasPorMes,
     );
@@ -140,14 +186,14 @@ class ResultadoEconomia {
   final double litrosEconomizados;
   final double metrosCubicosEconomizados;
   final double valorEconomizadoReais;
-  final TipoDesperdicio tipoDesperdicio;
+  final TipoEvento? tipoEvento;
   final DateTime dataCalculo;
 
   ResultadoEconomia({
     required this.litrosEconomizados,
     required this.metrosCubicosEconomizados,
     required this.valorEconomizadoReais,
-    required this.tipoDesperdicio,
+    this.tipoEvento,
     required this.dataCalculo,
   });
 
@@ -162,7 +208,7 @@ class ResultadoEconomiaMensal {
   final double litrosEconomizadosMensal;
   final double metrosCubicosEconomizadosMensal;
   final double valorEconomizadoMensalReais;
-  final TipoDesperdicio tipoDesperdicio;
+  final TipoEvento? tipoEvento;
   final int ocorrenciasPorDia;
   final int diasCalculados;
 
@@ -170,7 +216,7 @@ class ResultadoEconomiaMensal {
     required this.litrosEconomizadosMensal,
     required this.metrosCubicosEconomizadosMensal,
     required this.valorEconomizadoMensalReais,
-    required this.tipoDesperdicio,
+    this.tipoEvento,
     required this.ocorrenciasPorDia,
     required this.diasCalculados,
   });

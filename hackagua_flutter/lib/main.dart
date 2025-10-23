@@ -1,6 +1,5 @@
-// import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
-import 'package:hackagua_flutter/navigation/navbar.dart';
+import 'package:hackagua_flutter/screens/detection/detection_screen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -47,7 +46,7 @@ class MyApp extends StatelessWidget {
               primarySwatch: Colors.blue,
               visualDensity: VisualDensity.adaptivePlatformDensity,
             ),
-            home: const MainScreen(),
+            home: const DetectionScreen(),
           );
         },
       ),

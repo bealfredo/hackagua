@@ -1,9 +1,12 @@
 // lib/models/configuracoes.dart
+
+// Esta é a classe COMPLETA que define a estrutura das suas configurações.
+// A tela 'ConfigScreen' depende das propriedades definidas aqui.
 class Configuracoes {
   String geofenceEndereco;
   int geofenceRaio;
-  double sensibilidade; // 0.0 a 2.0 (Ex: Baixa=0, Média=1, Alta=2)
-  int metaDiaria; // Em minutos
+  double sensibilidade;
+  int metaDiaria;
   bool processarSoEmCasa;
   bool descartarAudio;
 
@@ -18,8 +21,8 @@ class Configuracoes {
 
   // Converte um JSON (da API) para um objeto Configuracoes
   factory Configuracoes.fromJson(Map<String, dynamic> json) {
+    // A simulação no seu ConfigService retorna estes campos
     return Configuracoes(
-      // Exemplo de como pegar dados aninhados
       geofenceEndereco: json['geofence']?['endereco'] ?? 'Não definido',
       geofenceRaio: (json['geofence']?['raio'] as num? ?? 50).toInt(),
       sensibilidade: (json['sensibilidade'] as num? ?? 1.0).toDouble(),
