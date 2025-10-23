@@ -5,7 +5,7 @@ import '../services/calculo_economia_service.dart';
 import 'detalhes_economia_screen.dart';
 
 class AlertasScreen extends StatelessWidget {
-  const AlertasScreen({Key? key}) : super(key: key);
+  const AlertasScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

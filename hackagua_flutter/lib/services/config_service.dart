@@ -1,14 +1,13 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:hackagua_flutter/models/configuracoes.dart';
 
 class ConfigService {
   final String _baseUrl = "https://api.escutadagua.com.br/v1";
-  // TODO: Pegar o token de autenticação salvo (do AuthService)
-  final String _token = "SEU_TOKEN_DE_AUTH_AQUI";
 
   Future<Configuracoes> getConfiguracoes() async {
-    final url = Uri.parse('$_baseUrl/configuracoes');
+    // final url = Uri.parse('$_baseUrl/configuracoes');
     try {
       // **Simulação de API para testes (REMOVA ISSO EM PRODUÇÃO)**
       // Vamos simular uma espera e uma resposta da API
@@ -49,13 +48,13 @@ class ConfigService {
 
   /// Salva o objeto de configurações completo na API
   Future<void> salvarConfiguracoes(Configuracoes config) async {
-    final url = Uri.parse('$_baseUrl/configuracoes');
+    // final url = Uri.parse('$_baseUrl/configuracoes');
     try {
       final body = jsonEncode(config.toJson()); // Usa o método toJson do modelo
 
       // **Simulação de API para testes (REMOVA ISSO EM PRODUÇÃO)**
       await Future.delayed(const Duration(milliseconds: 500));
-      print('Configurações salvas (simulação): $body');
+      debugPrint('Configurações salvas (simulação): $body');
       // **Fim da Simulação**
 
       /*

@@ -1,9 +1,11 @@
 
 import 'package:flutter/material.dart';
-import 'package:hackagua_flutter/screens/alertas_screen.dart';
-import 'package:hackagua_flutter/screens/config_screen.dart';
-import 'package:hackagua_flutter/screens/historico_screen.dart';
+import 'package:hackagua_flutter/screens/alertas/alertas_screen.dart';
+import 'package:hackagua_flutter/screens/config/config_screen.dart';
+import 'package:hackagua_flutter/screens/dashboard/dashboard_screen.dart';
 import 'package:hackagua_flutter/screens/home/home_screen.dart';
+import 'package:hackagua_flutter/screens/historico/historico_screen.dart';
+import 'package:hackagua_flutter/screens/historico/historico_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -17,9 +19,10 @@ class _MainScreenState extends State<MainScreen> {
   final PageController _pageController = PageController();
 
   final List<Widget> _screens = [
-    const HomeScreen(),
-    const AlertasScreen(),
+    HomeScreen(),
+    const DashboardScreen(),
     const HistoricoScreen(),
+    const AlertasScreen(),
     const ConfigScreen(),
   ];
 
@@ -49,16 +52,20 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.warning),
-            label: 'Alertas',
+            icon: Icon(Icons.dashboard),
+            label: 'Dashboard',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.history),
             label: 'Histórico',
           ),
           BottomNavigationBarItem(
+            icon: Icon(Icons.warning),
+            label: 'Alerta',
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.settings),
-            label: 'Configurações',
+            label: 'Config',
           ),
         ],
         currentIndex: _selectedIndex,

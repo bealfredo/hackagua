@@ -1,55 +1,138 @@
 import 'package:flutter/material.dart';
-import '../../providers/auth_provider.dart';
-import 'package:provider/provider.dart';
-import '../login/login_screen.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
-class HomeScreen extends StatelessWidget {
-  final Function(int)? onNavigate;
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
-  const HomeScreen({Key? key, this.onNavigate}) : super(key: key);
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  bool _isCapturing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    initializeDateFormatting('pt_BR');
+  }
+
+  void _toggleCapture() {
+    setState(() {
+      _isCapturing = !_isCapturing;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final user = authProvider.user;
-
     return Scaffold(
-      backgroundColor: const Color(0xFFEFEFEF),
+      backgroundColor: const Color(0xFFF5F7FA),
       body: SafeArea(
         child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildHeader(),
+              const SizedBox(height: 24),
+              _buildSimularBanhoCard(),
+              const SizedBox(height: 24),
+              _buildConsumoDiarioCard(),
+              const SizedBox(height: 24),
+              _buildAlertasRecentesCard(context),
+              const SizedBox(height: 24),
+              _buildActionButtons(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    final now = DateTime.now();
+    final formattedDate = DateFormat("EEEE, d 'de' MMMM", 'pt_BR').format(now);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Flexible(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header com foto e nome
-              _buildHeader(user, authProvider, context),
-              
-              const SizedBox(height: 32),
-              
-              // Card de recomendação
-              _buildRecomendacaoCard(),
-              
-              const SizedBox(height: 32),
-              
-              // Título "Serviços"
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 21),
-                child: Text(
-                  'Serviços',
-                  style: TextStyle(
-                    color: Color(0xFF15131F),
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    height: 1.50,
+              Row(
+                children: [
+                  Icon(Icons.water_drop_outlined, color: Colors.blue[700]),
+                  const SizedBox(width: 8),
+                  const Flexible(
+                    child: Text(
+                      "Escuta d'Água",
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                formattedDate,
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 16,
                 ),
               ),
-              
-              const SizedBox(height: 16),
-              
-              // Cards de serviços
-              _buildServicosCards(),
-              
-              const SizedBox(height: 24),
+            ],
+          ),
+        ),
+        ElevatedButton.icon(
+          onPressed: _toggleCapture,
+          icon: Icon(_isCapturing
+              ? Icons.pause_circle_outline
+              : Icons.play_circle_outline),
+          label: Text(_isCapturing ? 'Captando' : 'Pausado'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor:
+                _isCapturing ? Colors.green[100] : Colors.amber[100],
+            foregroundColor:
+                _isCapturing ? Colors.green[800] : Colors.amber[800],
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSimularBanhoCard() {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey[300]!),
+      ),
+      child: InkWell(
+        onTap: () {},
+        borderRadius: BorderRadius.circular(12),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(vertical: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.shower_outlined),
+              SizedBox(width: 8),
+              Text(
+                'Simular banho',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ),
@@ -57,294 +140,177 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(dynamic user, AuthProvider authProvider, BuildContext context) {
-    final userImageUrl = 'https://ui-avatars.com/api/?name=${user?.nome ?? "Usuario"}&size=80&background=4263EB&color=fff';
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 21, vertical: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              // Foto do usuário
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFFE7B918),
-                    width: 2,
-                  ),
-                ),
-                child: ClipOval(
-                  child: Image.network(
-                    userImageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: const Color(0xFF4263EB),
-                        child: Center(
-                          child: Text(
-                            user?.nome?.substring(0, 1).toUpperCase() ?? 'U',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              // Saudação e nome
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Opacity(
-                    opacity: 0.50,
-                    child: Text(
-                      _getSaudacao(),
-                      style: const TextStyle(
-                        color: Color(0xFF15131F),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                        height: 1.50,
+  Widget _buildConsumoDiarioCard() {
+    return Card(
+      elevation: 2,
+      shadowColor: Colors.black.withOpacity(0.1),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.show_chart, color: Colors.green[600]),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Hoje',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ),
-                  ),
-                  Text(
-                    user?.nome ?? 'Usuário',
-                    style: const TextStyle(
-                      color: Color(0xFF15131F),
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      height: 1.50,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          // Botão de logout
-          GestureDetector(
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Logout'),
-                  content: const Text('Tem certeza que deseja sair?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancelar'),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        // Fecha o diálogo primeiro
-                        Navigator.pop(context);
-                        // Limpa a sessão
-                        await authProvider.logout();
-                        // Redireciona para a tela de login removendo o histórico
-                        if (context.mounted) {
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(
-                              builder: (_) => LoginScreen(),
-                            ),
-                            (_) => false,
-                          );
-                        }
-                      },
-                      child: const Text('Sair'),
                     ),
                   ],
                 ),
-              );
-            },
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: const ShapeDecoration(
-                color: Colors.white,
-                shape: OvalBorder(),
-              ),
-              child: const Icon(Icons.logout, color: Color(0xFF15131F)),
+                const Text(
+                  '0 min',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildServicosCards() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 21),
-      child: Column(
-        children: [
-          _buildServicoCard(
-            icon: Icons.location_on,
-            iconColor: const Color(0xFF4263EB),
-            titulo: 'Rodoviárias',
-            descricao: 'Veja todas as rodoviárias cadastradas',
-            onTap: () {
-              onNavigate?.call(1); // Índice de Rodoviárias
-            },
-          ),
-          const SizedBox(height: 16),
-          _buildServicoCard(
-            icon: Icons.directions_bus,
-            iconColor: const Color(0xFF259D84),
-            titulo: 'Viagens',
-            descricao: 'Consulte as viagens de ônibus disponíveis',
-            onTap: () {
-              onNavigate?.call(2); // Índice de Viagens
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildServicoCard({
-    required IconData icon,
-    required Color iconColor,
-    required String titulo,
-    required String descricao,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: ShapeDecoration(
-          color: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          shadows: const [
-            BoxShadow(
-              color: Color(0x0F000000),
-              blurRadius: 8,
-              offset: Offset(0, 2),
-              spreadRadius: 0,
+            const SizedBox(height: 8),
+            Text(
+              'Meta diária: 30 minutos',
+              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            LinearProgressIndicator(
+              value: 0.0,
+              backgroundColor: Colors.grey[200],
+              valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
+              minHeight: 8,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '0% da meta alcançada',
+              style: TextStyle(color: Colors.grey[600], fontSize: 12),
             ),
           ],
         ),
-        child: Row(
+      ),
+    );
+  }
+
+  Widget _buildAlertasRecentesCard(BuildContext context) {
+    return Card(
+      elevation: 2,
+      shadowColor: Colors.black.withOpacity(0.1),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: ShapeDecoration(
-                color: iconColor.withOpacity(0.1),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                    SizedBox(width: 8),
+                    Text(
+                      'Alertas recentes',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: 28,
-              ),
+                TextButton(
+                  onPressed: () {
+                    // Navegar para a tela de todos os alertas
+                  },
+                  child: const Text('Ver todos >'),
+                ),
+              ],
             ),
-            const SizedBox(width: 16),
-            Expanded(
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    titulo,
-                    style: const TextStyle(
-                      color: Color(0xFF15131F),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      height: 1.30,
+                  const Text(
+                    'Alto consumo hoje',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 8),
                   Text(
-                    descricao,
-                    style: TextStyle(
-                      color: const Color(0xFF15131F).withOpacity(0.6),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                      height: 1.40,
-                    ),
+                    'Você já usou 18 minutos de água hoje, 60% da sua meta.',
+                    style: TextStyle(color: Colors.grey[700], fontSize: 14),
                   ),
                 ],
               ),
             ),
-            const Icon(
-              Icons.arrow_forward_ios,
-              color: Color(0xFF15131F),
-              size: 20,
-            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildRecomendacaoCard() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 21),
-      child: Stack(
-        children: [
-          Container(
-            height: 121,
-            decoration: ShapeDecoration(
-              image: const DecorationImage(
-                image: NetworkImage("https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800"),
-                fit: BoxFit.cover,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 0,
-            top: 0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-              decoration: const ShapeDecoration(
-                color: Color(0xE8555555),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    bottomRight: Radius.circular(16),
-                  ),
-                ),
-              ),
-              child: const Text(
-                'Recomendação - Palmas - TO',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  height: 1.60,
+  Widget _buildActionButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: Card(
+            elevation: 2,
+            shadowColor: Colors.black.withOpacity(0.1),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: InkWell(
+              onTap: _toggleCapture,
+              borderRadius: BorderRadius.circular(12),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16.0),
+                child: Column(
+                  children: [
+                    Icon(Icons.play_circle_outline),
+                    SizedBox(height: 8),
+                    Text('Retomar'),
+                  ],
                 ),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Card(
+            elevation: 2,
+            shadowColor: Colors.black.withOpacity(0.1),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: InkWell(
+              onTap: () {},
+              borderRadius: BorderRadius.circular(12),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16.0),
+                child: Column(
+                  children: [
+                    Icon(Icons.history_outlined),
+                    SizedBox(height: 8),
+                    Text('Ver histórico'),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
-  }
-
-  String _getSaudacao() {
-    final hora = DateTime.now().hour;
-    if (hora < 12) {
-      return 'Bom dia,';
-    } else if (hora < 18) {
-      return 'Boa tarde,';
-    } else {
-      return 'Boa noite,';
-    }
   }
 }

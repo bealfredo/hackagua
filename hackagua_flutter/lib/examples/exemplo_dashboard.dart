@@ -1,12 +1,6 @@
-// lib/examples/exemplo_dashboard.dart
-
-/// EXEMPLO DE USO DO DASHBOARD
-/// 
-/// Este arquivo demonstra como usar o Dashboard Screen
-/// em diferentes cenários.
+library exemplo_dashboard;
 
 import 'package:flutter/material.dart';
-import '../models/desperdicio_agua.dart';
 import '../screens/dashboard/dashboard_screen.dart';
 
 void main() {
@@ -14,7 +8,7 @@ void main() {
 }
 
 class ExemploDashboardApp extends StatelessWidget {
-  const ExemploDashboardApp({Key? key}) : super(key: key);
+  const ExemploDashboardApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +24,7 @@ class ExemploDashboardApp extends StatelessWidget {
 }
 
 class MenuExemplos extends StatelessWidget {
-  const MenuExemplos({Key? key}) : super(key: key);
+  const MenuExemplos({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -172,7 +166,7 @@ class MenuExemplos extends StatelessWidget {
 
 // EXEMPLO 1: Usuário Econômico
 class DashboardUsuarioEconomico extends StatelessWidget {
-  const DashboardUsuarioEconomico({Key? key}) : super(key: key);
+  const DashboardUsuarioEconomico({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -189,7 +183,7 @@ class DashboardUsuarioEconomico extends StatelessWidget {
 
 // EXEMPLO 2: Usuário com Desperdícios
 class DashboardComDesperdicios extends StatelessWidget {
-  const DashboardComDesperdicios({Key? key}) : super(key: key);
+  const DashboardComDesperdicios({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -228,7 +222,7 @@ class DashboardComDesperdicios extends StatelessWidget {
 
 // EXEMPLO 3: Meta Excedida
 class DashboardMetaExcedida extends StatelessWidget {
-  const DashboardMetaExcedida({Key? key}) : super(key: key);
+  const DashboardMetaExcedida({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -248,7 +242,7 @@ class DashboardMetaExcedida extends StatelessWidget {
 
 // EXEMPLO 4: Sem Dados (Novo Usuário)
 class DashboardSemDados extends StatelessWidget {
-  const DashboardSemDados({Key? key}) : super(key: key);
+  const DashboardSemDados({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -323,7 +317,7 @@ class DashboardSemDados extends StatelessWidget {
 
 // EXEMPLO 5: Dashboard com Integração de API
 class DashboardComAPI extends StatefulWidget {
-  const DashboardComAPI({Key? key}) : super(key: key);
+  const DashboardComAPI({super.key});
 
   @override
   State<DashboardComAPI> createState() => _DashboardComAPIState();
