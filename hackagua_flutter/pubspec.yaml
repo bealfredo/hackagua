@@ -39,6 +39,9 @@ dependencies:
   hive_flutter: ^1.1.0
   image_picker: ^1.1.2
   http_parser: ^4.0.2
+  permission_handler: ^11.3.1
+  # Use record 4.x to avoid platform mismatch on Linux federated package
+  record: 6.1.2
 
 dev_dependencies:
   flutter_test:

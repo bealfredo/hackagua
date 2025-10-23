@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/dashboard/bottom_navigation.dart';
 import 'screens/login/login_screen.dart';
 import 'providers/auth_provider.dart';
 
@@ -47,7 +48,7 @@ class MyApp extends StatelessWidget {
               visualDensity: VisualDensity.adaptivePlatformDensity,
             ),
             home: authProvider.user != null
-                ? const HomeScreen()
+                ? const RootNavigation()
                 : const LoginScreen(),
           );
         },
