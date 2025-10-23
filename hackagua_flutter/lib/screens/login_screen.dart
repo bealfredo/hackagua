@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hackagua_flutter/services/usuario_service.dart';
+import 'package:hackagua_flutter/navigation/navbar.dart';
 import 'dart:convert';
 
 class LoginScreen extends StatefulWidget {
@@ -37,7 +38,14 @@ class _LoginScreenState extends State<LoginScreen> {
           final box = await Hive.openBox('auth_box');
           await box.put('auth_token', 'Bearer $token');
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Login successful')));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Login successful')),
+            );
+            // Navega para o MainScreen (Dashboard)
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const MainScreen()),
+              (_) => false,
+            );
           }
         } else {
           if (mounted) {

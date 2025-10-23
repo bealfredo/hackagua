@@ -146,7 +146,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildSliverAppBar() {
-    final now = DateTime.now();
     final saudacao = _getSaudacao();
 
     return SliverAppBar(

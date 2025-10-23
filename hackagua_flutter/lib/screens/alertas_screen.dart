@@ -173,92 +173,48 @@ class AlertasScreen extends StatelessWidget {
               // --- Botões de Ação ---
               Row(
                 children: [
-                  OutlinedButton.icon(
-                    icon: const Icon(Icons.check, size: 18),
-                    label: const Text("Marcar como visto"),
-                    onPressed: () {
-                      /* Lógica para marcar como visto */
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.grey[800],
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      side: BorderSide(color: Colors.grey[400]!),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                  Flexible(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.check, size: 16),
+                      label: const Text(
+                        "Marcar visto",
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      onPressed: () {
+                        /* Lógica para marcar como visto */
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.grey[800],
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                        side: BorderSide(color: Colors.grey[400]!),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  TextButton.icon(
-                    icon: const Icon(
-                      Icons.notifications_off_outlined,
-                      size: 18,
-                    ),
-                    label: const Text("Silenciar por 24h"),
-                    onPressed: () {
-                      /* Lógica para silenciar */
-                    },
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.grey[700],
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: TextButton.icon(
+                      icon: const Icon(
+                        Icons.notifications_off_outlined,
+                        size: 16,
+                      ),
+                      label: const Text(
+                        "Silenciar 24h",
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      onPressed: () {
+                        /* Lógica para silenciar */
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.grey[700],
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      ),
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Constrói um card de alerta padrão (para a seção "Anteriores")
-  Widget _buildAlertaAnteriorCard({
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
-    required String tagText,
-    required Color tagBgColor,
-    required Color tagFgColor,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Card(
-        elevation: 0.5,
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: Colors.grey[200]!, width: 1),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, color: iconColor, size: 28),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              _buildTag(tagText, tagBgColor, tagFgColor),
             ],
           ),
         ),
@@ -511,7 +467,14 @@ class AlertasScreen extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[700])),
+        Flexible(
+          child: Text(
+            label, 
+            style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: 8),
         Text(
           valor,
           style: TextStyle(

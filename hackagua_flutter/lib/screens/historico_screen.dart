@@ -182,31 +182,34 @@ class _HistoricoScreenState extends State<HistoricoScreen> {
               itemCount: _filtrosEvento.length,
               separatorBuilder: (context, index) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
-                return ChoiceChip(
-                  label: Text(_filtrosEvento[index]),
-                  selected: _filtroEventoSelecionado == index,
-                  onSelected: (bool selected) {
-                    setState(() {
-                      if (selected) {
-                        _filtroEventoSelecionado = index;
-                        // TODO: Recarregar a lista de eventos com o filtro
-                      }
-                    });
-                  },
-                  backgroundColor: Colors.grey[100],
-                  selectedColor: Colors.blue[50],
-                  labelStyle: TextStyle(
-                    color: _filtroEventoSelecionado == index
-                        ? Colors.blue[800]
-                        : Colors.grey[700],
-                    fontWeight: FontWeight.w600,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    side: BorderSide(
+                return Material(
+                  color: Colors.transparent,
+                  child: ChoiceChip(
+                    label: Text(_filtrosEvento[index]),
+                    selected: _filtroEventoSelecionado == index,
+                    onSelected: (bool selected) {
+                      setState(() {
+                        if (selected) {
+                          _filtroEventoSelecionado = index;
+                          // TODO: Recarregar a lista de eventos com o filtro
+                        }
+                      });
+                    },
+                    backgroundColor: Colors.grey[100],
+                    selectedColor: Colors.blue[50],
+                    labelStyle: TextStyle(
                       color: _filtroEventoSelecionado == index
-                          ? Colors.blue[700]!
-                          : Colors.grey[300]!,
+                          ? Colors.blue[800]
+                          : Colors.grey[700],
+                      fontWeight: FontWeight.w600,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: BorderSide(
+                        color: _filtroEventoSelecionado == index
+                            ? Colors.blue[700]!
+                            : Colors.grey[300]!,
+                      ),
                     ),
                   ),
                 );

@@ -1,15 +1,15 @@
 // import 'package:flutter/material.dart';
 
 import 'package:flutter/material.dart';
+import 'package:hackagua_flutter/screens/dashboard/dashboard_screen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
-import 'screens/home/home_screen.dart';
-import 'screens/login/login_screen.dart';
+
 import 'providers/auth_provider.dart';
 
 const baseUrlApi = 'http://72.60.3.7:8080';
 
-const Color primaryGray = Color(0xFF333333); 
+const Color primaryGray = Color(0xFF333333);
 const Color secondaryGray = Color(0xFF4D4D4D);
 const Color accentGray = Color(0xFF666666);
 const Color lightGray = Color(0xFFAAAAAA);
@@ -48,14 +48,10 @@ class MyApp extends StatelessWidget {
               primarySwatch: Colors.blue,
               visualDensity: VisualDensity.adaptivePlatformDensity,
             ),
-            home: authProvider.user != null
-                ? const HomeScreen()
-                : const LoginScreen(),
+            home: const DashboardScreen(),
           );
         },
       ),
     );
   }
 }
-
-// Biometria, Firebase e navegação por abas removidos para simplificar o fluxo inicial

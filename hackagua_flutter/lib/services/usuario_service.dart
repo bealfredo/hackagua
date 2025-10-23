@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -60,31 +61,19 @@ Future<http.Response> loginStudent(String login, String senha) async {
   });
 
   try {
-    print('🌐 Tentando login em: $url');
-    print('📤 Payload: $requestBody');
-    
-    final response = await http.post(
+    final response = await http
+        .post(
       url,
       headers: {
         'Content-Type': 'application/json',
         'accept': '*/*',
       },
       body: requestBody,
-    ).timeout(
-      const Duration(seconds: 15),
-      onTimeout: () {
-        print('⏱️ TIMEOUT: Não conseguiu conectar em 15 segundos');
-        throw Exception('Timeout: O servidor não respondeu. Verifique sua conexão.');
-      },
-    );
+    )
+        .timeout(const Duration(seconds: 15));
 
-    print('✅ Resposta recebida: ${response.statusCode}');
-    print('📥 Headers: ${response.headers}');
-    print('📥 Body: ${response.body}');
-    
     return response;
   } catch (e) {
-    print('❌ ERRO no login: $e');
     // Repassando a exceção para ser tratada no AuthProvider
     rethrow;
   }

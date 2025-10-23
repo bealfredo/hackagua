@@ -416,10 +416,21 @@ class _ConfigScreenState extends State<ConfigScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(titulo, style: TextStyle(color: Colors.grey[700], fontSize: 15)),
-          Text(
-            valor,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+          Flexible(
+            child: Text(
+              titulo,
+              style: TextStyle(color: Colors.grey[700], fontSize: 15),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              valor,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.end,
+            ),
           ),
         ],
       ),

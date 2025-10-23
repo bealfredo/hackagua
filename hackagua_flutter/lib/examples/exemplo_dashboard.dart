@@ -193,29 +193,29 @@ class DashboardComDesperdicios extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Usuário com vários desperdícios detectados
-    final deteccoes = [
-      DeteccaoDesperdicio(
-        tipo: TipoDesperdicio.banhoLongo,
-        dataHora: DateTime.now().subtract(const Duration(hours: 1)),
-        observacao: 'Banho de 18 minutos',
-      ),
-      DeteccaoDesperdicio(
-        tipo: TipoDesperdicio.torneiraPingando,
-        dataHora: DateTime.now().subtract(const Duration(hours: 5)),
-        observacao: 'Torneira da cozinha',
-      ),
-      DeteccaoDesperdicio(
-        tipo: TipoDesperdicio.vazamentoNoturno,
-        dataHora: DateTime.now().subtract(const Duration(hours: 10)),
-        observacao: 'Detectado às 3:00 AM',
-      ),
-      DeteccaoDesperdicio(
-        tipo: TipoDesperdicio.torneiraAberta,
-        dataHora: DateTime.now().subtract(const Duration(hours: 12)),
-        observacao: 'Durante escovação',
-      ),
-    ];
+    // Usuário com vários desperdícios detectados - exemplo comentado para referência
+    // final deteccoes = [
+    //   DeteccaoDesperdicio(
+    //     tipo: TipoDesperdicio.banhoLongo,
+    //     dataHora: DateTime.now().subtract(const Duration(hours: 1)),
+    //     observacao: 'Banho de 18 minutos',
+    //   ),
+    //   DeteccaoDesperdicio(
+    //     tipo: TipoDesperdicio.torneiraPingando,
+    //     dataHora: DateTime.now().subtract(const Duration(hours: 5)),
+    //     observacao: 'Torneira da cozinha',
+    //   ),
+    //   DeteccaoDesperdicio(
+    //     tipo: TipoDesperdicio.vazamentoNoturno,
+    //     dataHora: DateTime.now().subtract(const Duration(hours: 10)),
+    //     observacao: 'Detectado às 3:00 AM',
+    //   ),
+    //   DeteccaoDesperdicio(
+    //     tipo: TipoDesperdicio.torneiraAberta,
+    //     dataHora: DateTime.now().subtract(const Duration(hours: 12)),
+    //     observacao: 'Durante escovação',
+    //   ),
+    // ];
 
     return const DashboardScreen(
       // consumoHoje: 180.0, // 120% da meta

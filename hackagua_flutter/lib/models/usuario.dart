@@ -7,7 +7,7 @@ class Usuario {
   String login;
   String cpf;
   DateTime dataNascimento;
-  
+
   String? corRaca;
   String? uf;
   String? cidade;
@@ -20,7 +20,7 @@ class Usuario {
   String? telefoneCelular1;
   String? telefoneCelular2;
   String? telefoneFixo;
-  
+
   Usuario({
     required this.id,
     required this.nome,
@@ -47,7 +47,7 @@ class Usuario {
   factory Usuario.fromJson(dynamic jsonData) {
     // Garantir que estamos trabalhando com um Map
     final json = jsonData as Map;
-    
+
     return Usuario(
       id: (json['id'] as num).toInt(),
       nome: json['nome'],
@@ -56,8 +56,8 @@ class Usuario {
       imagemPrincipal: json['imagemPrincipal'] ?? '',
       login: json['login'],
       cpf: json['cpf'],
-      dataNascimento: json['dataNascimento'] is DateTime 
-          ? json['dataNascimento'] 
+      dataNascimento: json['dataNascimento'] is DateTime
+          ? json['dataNascimento']
           : DateTime.parse(json['dataNascimento']),
       // Novos campos
       corRaca: json['corRaca'],

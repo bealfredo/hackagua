@@ -109,22 +109,23 @@ class GraficoSemanalCard extends StatelessWidget {
   }
 
   Widget _buildBarra(String dia, double valor, double maxValor, bool dentroDaMeta) {
-    final alturaMaxima = 140.0;
-    final altura = (valor / maxValor * alturaMaxima).clamp(20.0, alturaMaxima);
+    final alturaMaxima = 130.0; // Reduzido de 140 para 130
+    final altura = (valor / maxValor * alturaMaxima).clamp(18.0, alturaMaxima);
     final cor = dentroDaMeta ? Colors.green[400]! : Colors.red[400]!;
     
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min, // Evita expansão desnecessária
       children: [
         Text(
           '${valor.toInt()}',
           style: TextStyle(
-            fontSize: 10,
+            fontSize: 9,
             fontWeight: FontWeight.bold,
             color: Colors.grey[700],
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 2),
         Container(
           width: 32,
           height: altura,

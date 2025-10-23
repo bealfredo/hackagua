@@ -1,12 +1,11 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/usuario.dart';
 import 'package:http/http.dart' as http;
 import '../services/usuario_service.dart';
-import '../main.dart'; // Para acessar baseUrlApi
+import 'dart:convert';
+import 'dart:async';
+import 'dart:io';
 
 class AuthProvider extends ChangeNotifier {
   Usuario? _user;
@@ -144,8 +143,6 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      print('🔐 Iniciando login para: $email');
-      
       // Chama o serviço de login com os parâmetros na ordem correta
       http.Response response = await loginStudent(email, password);
 
@@ -156,7 +153,6 @@ class AuthProvider extends ChangeNotifier {
         _token = tokenFromHeader;
         final box = await Hive.openBox(_boxName);
         await box.put('auth_token', _token);
-        print('✅ Token salvo: ${_token?.substring(0, 20)}...');
       }
 
       // Se recebeu uma resposta com corpo
@@ -166,8 +162,6 @@ class AuthProvider extends ChangeNotifier {
           
           if (response.statusCode >= 400) {
             _isLoading = false;
-            
-            print('❌ Erro ${response.statusCode}: $responseData');
             
             // Extrai a mensagem de erro específica do campo auth
             if (responseData.containsKey('errors') && 
@@ -190,14 +184,13 @@ class AuthProvider extends ChangeNotifier {
             // Mensagem padrão se nenhuma mensagem foi encontrada
             _errorMessage ??= 'Erro ao fazer login. Tente novamente.';
             
-            print('📋 Mensagem de erro: $_errorMessage');
+            // print('Erro de autenticação: $_errorMessage');
             notifyListeners();
             return false;
           }
           
           // Login bem-sucedido - processa os dados do usuário
           try {
-            print('✅ Login bem-sucedido! Processando dados do usuário...');
             _user = Usuario.fromJson(responseData);
             await _saveUserData();
             _isLoading = false;
@@ -206,7 +199,6 @@ class AuthProvider extends ChangeNotifier {
           } catch (e) {
             _isLoading = false;
             _errorMessage = 'Erro ao processar dados do usuário: $e';
-            print('❌ Erro ao processar usuário: $e');
             notifyListeners();
             return false;
           }
@@ -224,7 +216,6 @@ class AuthProvider extends ChangeNotifier {
       else if (response.statusCode >= 400) {
         _isLoading = false;
         _errorMessage = 'Erro no servidor (${response.statusCode})';
-        print('⚠️ Resposta sem corpo com status ${response.statusCode}');
         notifyListeners();
         return false;
       }
@@ -232,36 +223,43 @@ class AuthProvider extends ChangeNotifier {
       // Chegou aqui, mas não deveria (caso inesperado)
       _isLoading = false;
       _errorMessage = 'Resposta inesperada do servidor';
-      print('⚠️ Resposta sem corpo com status ${response.statusCode}');
       notifyListeners();
       return false;
       
-    } on TimeoutException catch (e) {
-      // Timeout específico
+    } on TimeoutException {
       _isLoading = false;
-      _errorMessage = 'Tempo esgotado. Verifique sua conexão e tente novamente.';
-      print('⏱️ Timeout: $e');
+      _errorMessage = 'Tempo de conexão esgotado. Tente novamente mais tarde.';
       notifyListeners();
       return false;
     } on SocketException catch (e) {
-      // Erro de conexão de rede
       _isLoading = false;
-      _errorMessage = 'Sem conexão com o servidor. Verifique:\n'
-          '• Se está conectado à internet\n'
-          '• Se o servidor está rodando\n'
-          '• Se a URL está correta ($baseUrlApi)';
-      print('🌐 Erro de rede: $e');
+      // Mensagens mais úteis para problemas comuns
+      final msg = e.message.toLowerCase();
+      if (msg.contains('failed host lookup') || msg.contains('host lookup')) {
+        _errorMessage = 'Não foi possível resolver o servidor. Verifique seu sinal de internet ou a URL do servidor.';
+      } else if (msg.contains('connection refused')) {
+        _errorMessage = 'Conexão recusada pelo servidor. O serviço pode estar fora do ar.';
+      } else if (msg.contains('network is unreachable')) {
+        _errorMessage = 'Rede indisponível. Verifique sua conexão com a internet.';
+      } else {
+        _errorMessage = 'Erro de conexão: verifique sua internet.';
+      }
       notifyListeners();
       return false;
-    } catch (e) {
-      // Erro de conexão ou outro erro inesperado
+    } on HandshakeException {
       _isLoading = false;
-      _errorMessage = 'Erro inesperado: ${e.toString()}';
-      print('❌ Erro inesperado: $e');
+      _errorMessage = 'Falha de certificado SSL/TLS. Tente novamente ou contate o suporte.';
+      notifyListeners();
+      return false;
+    } catch (_) {
+      _isLoading = false;
+      _errorMessage = 'Não foi possível concluir o login. Tente novamente.';
       notifyListeners();
       return false;
     }
-  }  Future<void> logout() async {
+  }
+
+  Future<void> logout() async {
     _user = null;
   _token = null;
     await _saveUserData();
