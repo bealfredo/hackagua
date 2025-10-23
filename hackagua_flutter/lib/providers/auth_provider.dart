@@ -4,6 +4,8 @@ import '../models/usuario.dart';
 import 'package:http/http.dart' as http;
 import '../services/usuario_service.dart';
 import 'dart:convert';
+import 'dart:async';
+import 'dart:io';
 
 class AuthProvider extends ChangeNotifier {
   Usuario? _user;
@@ -224,11 +226,34 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return false;
       
-    } catch (e) {
-      // Erro de conexão ou outro erro inesperado
+    } on TimeoutException {
       _isLoading = false;
-      _errorMessage = 'Erro de conexão: verifique sua internet';
-      // print('Erro de conexão: $e');
+      _errorMessage = 'Tempo de conexão esgotado. Tente novamente mais tarde.';
+      notifyListeners();
+      return false;
+    } on SocketException catch (e) {
+      _isLoading = false;
+      // Mensagens mais úteis para problemas comuns
+      final msg = e.message.toLowerCase();
+      if (msg.contains('failed host lookup') || msg.contains('host lookup')) {
+        _errorMessage = 'Não foi possível resolver o servidor. Verifique seu sinal de internet ou a URL do servidor.';
+      } else if (msg.contains('connection refused')) {
+        _errorMessage = 'Conexão recusada pelo servidor. O serviço pode estar fora do ar.';
+      } else if (msg.contains('network is unreachable')) {
+        _errorMessage = 'Rede indisponível. Verifique sua conexão com a internet.';
+      } else {
+        _errorMessage = 'Erro de conexão: verifique sua internet.';
+      }
+      notifyListeners();
+      return false;
+    } on HandshakeException {
+      _isLoading = false;
+      _errorMessage = 'Falha de certificado SSL/TLS. Tente novamente ou contate o suporte.';
+      notifyListeners();
+      return false;
+    } catch (_) {
+      _isLoading = false;
+      _errorMessage = 'Não foi possível concluir o login. Tente novamente.';
       notifyListeners();
       return false;
     }

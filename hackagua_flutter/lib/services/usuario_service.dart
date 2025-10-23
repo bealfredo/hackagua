@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -60,14 +61,16 @@ Future<http.Response> loginStudent(String login, String senha) async {
   });
 
   try {
-    final response = await http.post(
+    final response = await http
+        .post(
       url,
       headers: {
         'Content-Type': 'application/json',
         'accept': '*/*',
       },
       body: requestBody,
-    );
+    )
+        .timeout(const Duration(seconds: 15));
 
     return response;
   } catch (e) {
@@ -98,11 +101,13 @@ Future<http.Response> updateUsuario(Map<String, dynamic> usuarioContato) async {
         : 'Bearer $token';
   }
 
-  final response = await http.patch(
+  final response = await http
+      .patch(
     url,
     headers: headers,
-  body: jsonEncode(usuarioContato),
-  );
+    body: jsonEncode(usuarioContato),
+  )
+      .timeout(const Duration(seconds: 20));
 
   return response;
 
@@ -145,7 +150,7 @@ Future<http.Response> uploadImagemUsuario(String userId, XFile imagem) async {
     request.files.add(multipartFile);
   }
 
-  final streamedResponse = await request.send();
+  final streamedResponse = await request.send().timeout(const Duration(seconds: 30));
   return http.Response.fromStream(streamedResponse);
 }
 
@@ -169,6 +174,8 @@ Future<http.Response> getUsuarioByToken() async {
         : 'Bearer $token';
   }
 
-  final response = await http.get(url, headers: headers);
+  final response = await http
+      .get(url, headers: headers)
+      .timeout(const Duration(seconds: 15));
   return response;
 }
