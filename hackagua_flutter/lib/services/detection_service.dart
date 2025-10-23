@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:hackagua_flutter/models/enums.dart';
 import 'package:hackagua_flutter/services/api_service.dart';
@@ -20,10 +21,16 @@ class DetectionService {
   List<String>? _labels;
   Timer? _recordingTimer;
   DateTime? _startTime;
+  double _rmsThreshold = 0.03; // Menos sensível: requer mais energia para considerar ruído
+  
+  // Emite true quando um ruído potencial para treino for detectado no último intervalo
+  final StreamController<bool> _trainingNoiseController = StreamController<bool>.broadcast();
+
+  Stream<bool> get trainingNoise$ => _trainingNoiseController.stream;
 
   // Configurações do modelo
   static const int _sampleRate = 16000;
-  static const int _duration = 5;
+  static const int _duration = 1; // Janela curta para "escutar o tempo todo"
   static const int _expectedInputLength = _sampleRate * _duration;
 
   DetectionService() {
@@ -108,11 +115,16 @@ class DetectionService {
     if (path != null) {
       final audioFile = File(path);
       try {
-        final wav = await Wav.readFile(path);
-        // O modelo espera um canal (mono)
-        final audioData = wav.channels.first;
+  final wav = await Wav.readFile(path);
+  // O modelo espera um canal (mono)
+  final rawChannel = wav.channels.first;
+  final normalized = _normalizeSamples(rawChannel);
 
-        final preprocessedData = _preprocessAudio(audioData);
+  // Calcula a energia média (RMS) do sinal para inferir se houve som relevante
+  final rms = _computeRms(normalized);
+  final dbfs = rms > 0 ? 20 * math.log(rms) / math.ln10 : -120.0; // dBFS
+
+  final preprocessedData = _preprocessAudio(normalized);
 
         if (_interpreter != null && _labels != null) {
           // O modelo espera um tensor com shape [80000]
@@ -123,8 +135,36 @@ class DetectionService {
 
           _interpreter!.runForMultipleInputs([input], {0: output});
 
-          final eventType = _postprocessOutput(output[0]);
+          // Pós-processamento com acesso à confiança máxima
+          final probs = output[0];
+          int maxIndex = 0;
+          double maxValue = 0.0;
+          for (int i = 0; i < probs.length; i++) {
+            if (probs[i] > maxValue) {
+              maxValue = probs[i];
+              maxIndex = i;
+            }
+          }
+
+          TipoEvento? eventType;
+          if (_labels != null && _labels!.isNotEmpty && maxValue > 0.5) {
+            final label = _labels![maxIndex];
+            eventType = _mapLabelToTipoEvento(label);
+          } else {
+            eventType = null;
+          }
+
+          // "Ruído detectado": energia acima do limiar (independente do classificador)
+          final bool noiseDetected = rms > _rmsThreshold;
+          print('DEBUG Audio: RMS=${rms.toStringAsFixed(4)} (${dbfs.toStringAsFixed(1)} dBFS), maxProb=${maxValue.toStringAsFixed(2)}, noiseDetected=$noiseDetected');
+          _trainingNoiseController.add(noiseDetected);
+
           return eventType;
+        } else {
+          // Se não conseguimos classificar, ainda assim avaliamos ruído pelo RMS
+          final bool noiseDetected = rms > _rmsThreshold;
+          print('DEBUG Audio (sem classificador): RMS=${rms.toStringAsFixed(4)} (${dbfs.toStringAsFixed(1)} dBFS), noiseDetected=$noiseDetected');
+          _trainingNoiseController.add(noiseDetected);
         }
       } catch (e) {
         print("Erro durante a classificação: $e");
@@ -218,6 +258,37 @@ class DetectionService {
     }
     _audioRecorder.dispose();
     _interpreter?.close();
+    await _trainingNoiseController.close();
     print("DetectionService finalizado.");
+  }
+
+  // Calcula RMS do sinal [-1,1]
+  double _computeRms(List<double> samples) {
+    if (samples.isEmpty) return 0.0;
+    double sumSquares = 0.0;
+    for (final s in samples) {
+      sumSquares += s * s;
+    }
+    return math.sqrt(sumSquares / samples.length);
+  }
+
+  // Normaliza amostras para [-1, 1]. Se os valores estiverem além, assume PCM 16-bit.
+  List<double> _normalizeSamples(List<double> samples) {
+    if (samples.isEmpty) return samples;
+    double maxAbs = 0.0;
+    for (final s in samples) {
+      final a = s.abs();
+      if (a > maxAbs) maxAbs = a;
+    }
+    // Se já parece normalizado
+    if (maxAbs <= 1.0) return samples;
+    // Assume 16-bit PCM
+    const double scale = 32768.0;
+    return samples.map((s) => (s / scale).clamp(-1.0, 1.0)).toList();
+  }
+
+  // Permite ajustar o limiar de RMS dinamicamente, se necessário
+  void setRmsThreshold(double value) {
+    _rmsThreshold = value.clamp(0.0, 1.0);
   }
 }
