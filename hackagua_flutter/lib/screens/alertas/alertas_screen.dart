@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-
-import '../models/desperdicio_agua.dart';
-import '../services/calculo_economia_service.dart';
-import 'detalhes_economia_screen.dart';
+import 'package:hackagua_flutter/models/desperdicio_agua.dart';
+import 'package:hackagua_flutter/screens/detalhes_economia_screen.dart';
+import 'package:hackagua_flutter/services/calculo_economia_service.dart';
 
 class AlertasScreen extends StatelessWidget {
   const AlertasScreen({super.key});

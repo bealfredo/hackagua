@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hackagua_flutter/models/configuracoes.dart';
+import 'package:hackagua_flutter/screens/login/login_screen.dart';
 import 'package:hackagua_flutter/services/config_service.dart'; // Para o campo de texto de números
 
 class ConfigScreen extends StatefulWidget {
@@ -137,6 +138,8 @@ class ConfigScreenState extends State<ConfigScreen> {
                   _buildMetaDiariaCard(),
                   _buildPrivacidadeCard(),
                   _buildSobreCard(),
+                  const SizedBox(height: 24),
+                  _buildLogoutButton(),
                   // Espaçamento extra no final para não colar na barra de navegação
                   const SizedBox(height: 24),
                 ],
@@ -167,6 +170,30 @@ class ConfigScreenState extends State<ConfigScreen> {
             style: TextStyle(fontSize: 16, color: Colors.grey[600]),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLogoutButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: ElevatedButton.icon(
+        onPressed: () {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+            (Route<dynamic> route) => false,
+          );
+        },
+        icon: const Icon(Icons.logout),
+        label: const Text('Sair'),
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.white,
+          backgroundColor: Colors.red,
+          minimumSize: const Size(double.infinity, 50),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
       ),
     );
   }
