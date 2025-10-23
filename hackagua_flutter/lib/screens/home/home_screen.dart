@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:hackagua_flutter/models/enums.dart';
 import 'package:hackagua_flutter/services/detection_service.dart';
 import 'package:hackagua_flutter/services/api_service.dart';
@@ -18,6 +19,8 @@ class _HomeScreenState extends State<HomeScreen> {
   TipoEvento? _lastEvent;
   double _lastDuration = 0.0;
   bool _apiConnected = false;
+  bool _trainingNoise = false;
+  StreamSubscription<bool>? _noiseSub;
 
   @override
   void initState() {
@@ -38,6 +41,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _initializeService() async {
     try {
       _detectionService = DetectionService();
+      // Ouve mudanças no status de ruído para treino
+      _noiseSub?.cancel();
+      _noiseSub = _detectionService!.trainingNoise$.listen((flag) {
+        if (!mounted) return;
+        setState(() {
+          _trainingNoise = flag;
+        });
+      });
       // Aguarda um pouco para garantir que o serviço está pronto
       await Future.delayed(const Duration(milliseconds: 500));
       if (mounted) {
@@ -72,6 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _noiseSub?.cancel();
     _detectionService?.dispose();
     super.dispose();
   }
@@ -156,6 +168,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       fontSize: 12,
                     ),
                   ),
+                  _trainingNoise ? const SizedBox(width: 12) : const SizedBox.shrink(),
+                  _buildTrainingNoiseTag(),
                 ],
               ),
             ],
@@ -163,6 +177,31 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         // O indicador de status foi removido daqui
       ],
+    );
+  }
+
+  Widget _buildTrainingNoiseTag() {
+    if (!_trainingNoise) return const SizedBox.shrink();
+    final Color bg = const Color(0xFFFFF3E0);
+    final Color fg = const Color(0xFFEF6C00);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: fg.withOpacity(0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: const [
+          Icon(Icons.hearing, size: 14, color: Color(0xFFEF6C00)),
+          SizedBox(width: 6),
+          Text(
+            'Ruído detectado',
+            style: TextStyle(color: Color(0xFFEF6C00), fontSize: 12, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
     );
   }
 
