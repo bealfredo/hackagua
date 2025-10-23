@@ -6,7 +6,14 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 
-const String baseUrlApi = 'https://api.example.com';
+// Configure the API base URL at runtime with --dart-define=BASE_URL=<url>
+// Examples:
+//  flutter run -d chrome --dart-define=BASE_URL=http://localhost:8080
+//  flutter run -d emulator-5554 --dart-define=BASE_URL=http://10.0.2.2:8080
+const String baseUrlApi = String.fromEnvironment(
+  'BASE_URL',
+  defaultValue: 'https://api.example.com',
+);
 
 Future<http.Response> loginStudent(String login, String senha) async {
   final url = Uri.parse('$baseUrlApi/auth');

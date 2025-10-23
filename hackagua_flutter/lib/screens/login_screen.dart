@@ -1,7 +1,63 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hackagua_flutter/services/usuario_service.dart';
+import 'dart:convert';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _loading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleSignIn() async {
+    if (_loading) return;
+    setState(() => _loading = true);
+    final email = _emailController.text.trim();
+    final senha = _passwordController.text;
+    try {
+      final response = await loginStudent(email, senha);
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        final token = body['token'] ?? body['auth_token'] ?? body['access_token'];
+        if (token is String && token.isNotEmpty) {
+          final box = await Hive.openBox('auth_box');
+          await box.put('auth_token', 'Bearer $token');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Login successful')));
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Login succeeded but token missing')));
+          }
+        }
+      } else {
+        String message = 'Login failed (${response.statusCode})';
+        try {
+          final body = jsonDecode(response.body);
+          if (body is Map && body['message'] != null) message = body['message'];
+        } catch (_) {}
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -11,7 +67,9 @@ class LoginScreen extends StatelessWidget {
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0),
-            child: Column(
+            child: Form(
+              key: _formKey,
+              child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -81,6 +139,7 @@ class LoginScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 TextFormField(
                   keyboardType: TextInputType.emailAddress,
+                  controller: _emailController,
                   decoration: InputDecoration(
                     labelText: "Email",
                     prefixIcon: Icon(Icons.email_outlined, color: Colors.grey[500]),
@@ -97,7 +156,8 @@ class LoginScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  obscureText: true, // Esconde o texto da senha
+                  controller: _passwordController,
+                  obscureText: true,
                   decoration: InputDecoration(
                     labelText: "Password",
                     prefixIcon: Icon(Icons.lock_outline, color: Colors.grey[500]),
@@ -114,8 +174,7 @@ class LoginScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: () {
-                  },
+                  onPressed: _loading ? null : _handleSignIn,
                   child: const Text(
                     "Sign in",
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -153,10 +212,11 @@ class LoginScreen extends StatelessWidget {
                   ],
                 ),
               ],
-            ),
-          ),
-        ),
-      ),
-    );
+            ), // Column
+          ), // Form
+        ), // Padding
+      ), // SingleChildScrollView
+    ), // SafeArea
+  ); // Scaffold
   }
 }
