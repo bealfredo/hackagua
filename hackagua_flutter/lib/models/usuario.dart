@@ -1,5 +1,3 @@
-import 'dart:core';
-
 class Usuario {
   int id;
   String nome;
@@ -9,6 +7,8 @@ class Usuario {
   String login;
   String cpf;
   DateTime dataNascimento;
+  
+  String? corRaca;
   String? uf;
   String? cidade;
   String? bairro;
@@ -20,7 +20,7 @@ class Usuario {
   String? telefoneCelular1;
   String? telefoneCelular2;
   String? telefoneFixo;
-
+  
   Usuario({
     required this.id,
     required this.nome,
@@ -30,6 +30,7 @@ class Usuario {
     required this.login,
     required this.cpf,
     required this.dataNascimento,
+    this.corRaca,
     this.uf,
     this.cidade,
     this.bairro,
@@ -45,8 +46,8 @@ class Usuario {
 
   factory Usuario.fromJson(dynamic jsonData) {
     // Garantir que estamos trabalhando com um Map
-    final json = jsonData as Map<String, dynamic>; // Boa prática tipar o Map
-
+    final json = jsonData as Map;
+    
     return Usuario(
       id: (json['id'] as num).toInt(),
       nome: json['nome'],
@@ -55,9 +56,11 @@ class Usuario {
       imagemPrincipal: json['imagemPrincipal'] ?? '',
       login: json['login'],
       cpf: json['cpf'],
-      dataNascimento: json['dataNascimento'] is DateTime
-          ? json['dataNascimento']
+      dataNascimento: json['dataNascimento'] is DateTime 
+          ? json['dataNascimento'] 
           : DateTime.parse(json['dataNascimento']),
+      // Novos campos
+      corRaca: json['corRaca'],
       uf: json['uf'],
       cidade: json['cidade'],
       bairro: json['bairro'],
@@ -82,6 +85,7 @@ class Usuario {
       'login': login,
       'cpf': cpf,
       'dataNascimento': dataNascimento.toIso8601String(),
+      'corRaca': corRaca,
       'uf': uf,
       'cidade': cidade,
       'bairro': bairro,

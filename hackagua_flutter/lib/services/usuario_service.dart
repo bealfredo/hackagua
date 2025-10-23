@@ -1,33 +1,71 @@
 import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
+import '../main.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+// ignore: depend_on_referenced_packages
+import 'package:http_parser/http_parser.dart';
 
-// Configure the API base URL at runtime with --dart-define=BASE_URL=<url>
-// Examples:
-//  flutter run -d chrome --dart-define=BASE_URL=http://localhost:8080
-//  flutter run -d emulator-5554 --dart-define=BASE_URL=http://10.0.2.2:8080
-const String baseUrlApi = String.fromEnvironment(
-  'BASE_URL',
-  defaultValue: 'https://api.example.com',
-);
+
+// Future<dynamic> getMedias() async {
+//   var url = Uri.parse('$baseUrlApi/media');
+
+//   var response = await http.get(url);
+
+//   if (response.statusCode == 200) {
+//     var data = json.decode(utf8.decode(response.bodyBytes));
+//     List<Media> medias = (data as List).map((item) => Media.fromJson(item)).toList();
+//     return medias;
+//   } else {
+//     print("Erro ao fazer a requisição: ${response.statusCode}");
+//     return [];
+//   }
+// }
+
+// Future<http.Response> postMedia(Map<String, dynamic> media) async {
+//   var url = Uri.parse('$baseUrlApi/media');
+//   var response = await http.post(
+//     url,
+//     body: json.encode(media),
+//     headers: {'Content-Type': 'application/json'},
+//   );
+//   return response;
+// }
+
+// Future<http.Response> deleteMedia(String id) async {
+//   var url = Uri.parse('$baseUrlApi/media/$id');
+//   var response = await http.delete(url);
+//   return response;
+// }
+
+// Future<http.Response> updateMedia(String id, Map<String, dynamic> media) async {
+//   var url = Uri.parse('$baseUrlApi/media/$id');
+//   var response = await http.put(
+//     url,
+//     body: json.encode(media),
+//     headers: {'Content-Type': 'application/json'},
+//   );
+//   return response;
+// }
 
 Future<http.Response> loginStudent(String login, String senha) async {
   final url = Uri.parse('$baseUrlApi/auth');
-
+  
+  // Corpo da requisição conforme o formato mostrado no curl
   final requestBody = jsonEncode({
     'login': login,
     'senha': senha,
-    'idTipoPerfil': 5,
+    'idTipoPerfil': 5  // Valor fixo para perfil de usuario
   });
 
   try {
     final response = await http.post(
       url,
-      headers: {'Content-Type': 'application/json', 'accept': '*/*'},
+      headers: {
+        'Content-Type': 'application/json',
+        'accept': '*/*',
+      },
       body: requestBody,
     );
 
@@ -40,6 +78,7 @@ Future<http.Response> loginStudent(String login, String senha) async {
 
 // Atualiza dados do próprio usuario (self-update) conforme o endpoint de PATCH /usuarios/selfupdate
 Future<http.Response> updateUsuario(Map<String, dynamic> usuarioContato) async {
+
   final url = Uri.parse('$baseUrlApi/alunos/selfupdate');
 
   // Recupera token salvo no Hive (se existir)
@@ -62,19 +101,18 @@ Future<http.Response> updateUsuario(Map<String, dynamic> usuarioContato) async {
   final response = await http.patch(
     url,
     headers: headers,
-    body: jsonEncode(usuarioContato),
+  body: jsonEncode(usuarioContato),
   );
 
   return response;
+
 }
+
 
 Future<http.Response> uploadImagemUsuario(String userId, XFile imagem) async {
   final uri = Uri.parse('$baseUrlApi/alunos/$userId/upload/imagem');
 
-  var request = http.MultipartRequest(
-    'PATCH',
-    uri,
-  ); // Corrigido de POST para PATCH
+  var request = http.MultipartRequest('PATCH', uri); // Corrigido de POST para PATCH
 
   // Anexa token se existir
   try {
@@ -122,7 +160,9 @@ Future<http.Response> getUsuarioByToken() async {
     token = box.get('auth_token');
   } catch (_) {}
 
-  final headers = <String, String>{'accept': '*/*'};
+  final headers = <String, String>{
+    'accept': '*/*',
+  };
   if (token != null && token.isNotEmpty) {
     headers['Authorization'] = token.startsWith('Bearer ')
         ? token

@@ -1,17 +1,16 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
-import 'package:hackagua_flutter/models/usuario.dart';
-import 'package:hackagua_flutter/services/usuario_service.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import '../models/usuario.dart';
 import 'package:http/http.dart' as http;
+import '../services/usuario_service.dart';
+import 'dart:convert';
 
 class AuthProvider extends ChangeNotifier {
   Usuario? _user;
   bool _isLoading = false;
   final String _boxName = 'auth_box';
   String? _errorMessage;
-  String? _token; // Authorization token returned in headers
+  String? _token;
 
   Usuario? get user => _user;
   bool get isLoggedIn => _user != null;
@@ -20,30 +19,27 @@ class AuthProvider extends ChangeNotifier {
   String? get token => _token;
 
   AuthProvider() {
-    checkLoginStatus(); // <- aqui é mais seguro
+    checkLoginStatus();
   }
 
-  // Limpar mensagem de erro
   void clearError() {
     _errorMessage = null;
     notifyListeners();
   }
 
-  // Inicializar Hive na main.dart
   static Future<void> initHive() async {
     await Hive.initFlutter();
   }
 
-  // Salvar dados do usuário
   Future<void> _saveUserData() async {
     final box = await Hive.openBox(_boxName);
-
+    
     if (_user == null) {
       await box.delete('user_data');
-      await box.delete('auth_token');
+  await box.delete('auth_token');
       return;
     }
-
+    
     final userData = {
       'id': _user!.id,
       'nome': _user!.nome,
@@ -53,6 +49,7 @@ class AuthProvider extends ChangeNotifier {
       'login': _user!.login,
       'cpf': _user!.cpf,
       'dataNascimento': _user!.dataNascimento.toIso8601String(),
+      'corRaca': _user!.corRaca,
       'uf': _user!.uf,
       'cidade': _user!.cidade,
       'bairro': _user!.bairro,
@@ -67,7 +64,7 @@ class AuthProvider extends ChangeNotifier {
     };
 
     // final userData = _user!.toJson();
-
+    
     // print('Salvando usuário no Hive: $_user');
 
     await box.put('user_data', userData);
@@ -75,7 +72,7 @@ class AuthProvider extends ChangeNotifier {
       await box.put('auth_token', _token);
     }
   }
-
+  
   // Carregar dados do usuário
   Future<void> checkLoginStatus() async {
     _isLoading = true;
@@ -104,19 +101,13 @@ class AuthProvider extends ChangeNotifier {
 
         // Atualiza token se servidor enviar um novo no header
         final headers = response.headers;
-        final refreshedToken =
-            headers['authorization'] ??
-            headers['Authorization'] ??
-            headers['x-auth-token'] ??
-            headers['token'];
+        final refreshedToken = headers['authorization'] ?? headers['Authorization'] ?? headers['x-auth-token'] ?? headers['token'];
         if (refreshedToken != null && refreshedToken.isNotEmpty) {
           _token = refreshedToken;
           await box.put('auth_token', _token);
         }
 
-        if (response.statusCode >= 200 &&
-            response.statusCode < 300 &&
-            response.body.isNotEmpty) {
+        if (response.statusCode >= 200 && response.statusCode < 300 && response.body.isNotEmpty) {
           try {
             final data = jsonDecode(utf8.decode(response.bodyBytes));
             _user = Usuario.fromJson(data);
@@ -142,7 +133,7 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
-
+  
   // Métodos login e logout
   Future<bool> login(String email, String password) async {
     _isLoading = true;
@@ -155,11 +146,7 @@ class AuthProvider extends ChangeNotifier {
 
       // Captura token do header (case-insensitive em http package)
       final headers = response.headers;
-      final tokenFromHeader =
-          headers['authorization'] ??
-          headers['Authorization'] ??
-          headers['x-auth-token'] ??
-          headers['token'];
+      final tokenFromHeader = headers['authorization'] ?? headers['Authorization'] ?? headers['x-auth-token'] ?? headers['token'];
       if (tokenFromHeader != null && tokenFromHeader.isNotEmpty) {
         _token = tokenFromHeader;
         final box = await Hive.openBox(_boxName);
@@ -170,36 +157,36 @@ class AuthProvider extends ChangeNotifier {
       if (response.body.isNotEmpty) {
         try {
           final responseData = jsonDecode(utf8.decode(response.bodyBytes));
-
+          
           if (response.statusCode >= 400) {
             _isLoading = false;
-
+            
             // Extrai a mensagem de erro específica do campo auth
-            if (responseData.containsKey('errors') &&
-                responseData['errors'] is List &&
+            if (responseData.containsKey('errors') && 
+                responseData['errors'] is List && 
                 responseData['errors'].isNotEmpty) {
+              
               for (final error in responseData['errors']) {
                 if (error['fieldName'] == 'auth') {
-                  _errorMessage =
-                      error['message']; // "Login ou senha inválidos"
+                  _errorMessage = error['message']; // "Login ou senha inválidos"
                   break;
                 }
               }
             }
-
+            
             // Se não encontrou mensagem específica, usa a mensagem geral
             if (_errorMessage == null && responseData.containsKey('message')) {
               _errorMessage = responseData['message']; // "Erro de validação."
             }
-
+            
             // Mensagem padrão se nenhuma mensagem foi encontrada
             _errorMessage ??= 'Erro ao fazer login. Tente novamente.';
-
+            
             // print('Erro de autenticação: $_errorMessage');
             notifyListeners();
             return false;
           }
-
+          
           // Login bem-sucedido - processa os dados do usuário
           try {
             _user = Usuario.fromJson(responseData);
@@ -213,6 +200,7 @@ class AuthProvider extends ChangeNotifier {
             notifyListeners();
             return false;
           }
+          
         } catch (e) {
           // Erro ao processar o JSON
           _isLoading = false;
@@ -221,7 +209,7 @@ class AuthProvider extends ChangeNotifier {
           notifyListeners();
           return false;
         }
-      }
+      } 
       // Resposta sem corpo
       else if (response.statusCode >= 400) {
         _isLoading = false;
@@ -229,12 +217,13 @@ class AuthProvider extends ChangeNotifier {
         notifyListeners();
         return false;
       }
-
+      
       // Chegou aqui, mas não deveria (caso inesperado)
       _isLoading = false;
       _errorMessage = 'Resposta inesperada do servidor';
       notifyListeners();
       return false;
+      
     } catch (e) {
       // Erro de conexão ou outro erro inesperado
       _isLoading = false;
@@ -247,7 +236,7 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> logout() async {
     _user = null;
-    _token = null;
+  _token = null;
     await _saveUserData();
     notifyListeners();
   }
