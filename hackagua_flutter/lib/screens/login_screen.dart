@@ -81,18 +81,13 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                CircleAvatar(
-                  radius: 45,
-                  backgroundColor: const Color(0xFFE3F2FD),
-                  child: Icon(
-                    Icons.water_drop_outlined, // Ícone de gota d'água
-                    size: 40,
-                    color: Colors.blue[700], // Cor do ícone
-                  ),
+                Image.asset(
+                  'assets/images/logo.png',
+                  height: 90,
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  "Welcome to Escuta d'Água",
+                  "EscutaD'Agua",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 26,

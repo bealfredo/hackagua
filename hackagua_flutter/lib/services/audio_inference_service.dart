@@ -4,28 +4,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
-
-/// Fallback stub for Interpreter when the tflite_flutter package is missing
-/// or not yet added to pubspec.yaml. This provides the minimal interface
-/// used in this file so the project can compile; at runtime you should
-/// remove this stub and rely on the real Interpreter from the package.
-class Interpreter {
-  Interpreter();
-
-  /// Mimics the API used in this file. Throws by default to indicate the
-  /// real implementation should be provided by the tflite_flutter package.
-  static Future<Interpreter> fromAsset(String asset) async {
-    throw UnsupportedError(
-      'Interpreter.fromAsset is not implemented. Add tflite_flutter to pubspec.yaml and remove this stub.',
-    );
-  }
-
-  void allocateTensors() {}
-
-  void run(Object input, Object output) {}
-
-  void close() {}
-}
+import 'package:tflite_flutter/tflite_flutter.dart';
 
 class AudioInferenceService {
   late Interpreter _interpreter;
@@ -45,7 +24,7 @@ class AudioInferenceService {
     try {
       // 1. Carregar o modelo TFLite
       _interpreter = await Interpreter.fromAsset(
-        'tflite/classificador_agua_hackathon.tflite',
+        'assets/tflite/classificador_agua_hackathon.tflite',
       );
 
       // 2. Carregar os metadados (labels.json)
