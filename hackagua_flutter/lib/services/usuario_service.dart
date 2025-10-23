@@ -60,6 +60,9 @@ Future<http.Response> loginStudent(String login, String senha) async {
   });
 
   try {
+    print('🌐 Tentando login em: $url');
+    print('📤 Payload: $requestBody');
+    
     final response = await http.post(
       url,
       headers: {
@@ -67,10 +70,21 @@ Future<http.Response> loginStudent(String login, String senha) async {
         'accept': '*/*',
       },
       body: requestBody,
+    ).timeout(
+      const Duration(seconds: 15),
+      onTimeout: () {
+        print('⏱️ TIMEOUT: Não conseguiu conectar em 15 segundos');
+        throw Exception('Timeout: O servidor não respondeu. Verifique sua conexão.');
+      },
     );
 
+    print('✅ Resposta recebida: ${response.statusCode}');
+    print('📥 Headers: ${response.headers}');
+    print('📥 Body: ${response.body}');
+    
     return response;
   } catch (e) {
+    print('❌ ERRO no login: $e');
     // Repassando a exceção para ser tratada no AuthProvider
     rethrow;
   }

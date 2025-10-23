@@ -1,9 +1,12 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/usuario.dart';
 import 'package:http/http.dart' as http;
 import '../services/usuario_service.dart';
-import 'dart:convert';
+import '../main.dart'; // Para acessar baseUrlApi
 
 class AuthProvider extends ChangeNotifier {
   Usuario? _user;
@@ -141,6 +144,8 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      print('🔐 Iniciando login para: $email');
+      
       // Chama o serviço de login com os parâmetros na ordem correta
       http.Response response = await loginStudent(email, password);
 
@@ -151,6 +156,7 @@ class AuthProvider extends ChangeNotifier {
         _token = tokenFromHeader;
         final box = await Hive.openBox(_boxName);
         await box.put('auth_token', _token);
+        print('✅ Token salvo: ${_token?.substring(0, 20)}...');
       }
 
       // Se recebeu uma resposta com corpo
@@ -160,6 +166,8 @@ class AuthProvider extends ChangeNotifier {
           
           if (response.statusCode >= 400) {
             _isLoading = false;
+            
+            print('❌ Erro ${response.statusCode}: $responseData');
             
             // Extrai a mensagem de erro específica do campo auth
             if (responseData.containsKey('errors') && 
@@ -182,13 +190,14 @@ class AuthProvider extends ChangeNotifier {
             // Mensagem padrão se nenhuma mensagem foi encontrada
             _errorMessage ??= 'Erro ao fazer login. Tente novamente.';
             
-            // print('Erro de autenticação: $_errorMessage');
+            print('📋 Mensagem de erro: $_errorMessage');
             notifyListeners();
             return false;
           }
           
           // Login bem-sucedido - processa os dados do usuário
           try {
+            print('✅ Login bem-sucedido! Processando dados do usuário...');
             _user = Usuario.fromJson(responseData);
             await _saveUserData();
             _isLoading = false;
@@ -197,6 +206,7 @@ class AuthProvider extends ChangeNotifier {
           } catch (e) {
             _isLoading = false;
             _errorMessage = 'Erro ao processar dados do usuário: $e';
+            print('❌ Erro ao processar usuário: $e');
             notifyListeners();
             return false;
           }
@@ -214,6 +224,7 @@ class AuthProvider extends ChangeNotifier {
       else if (response.statusCode >= 400) {
         _isLoading = false;
         _errorMessage = 'Erro no servidor (${response.statusCode})';
+        print('⚠️ Resposta sem corpo com status ${response.statusCode}');
         notifyListeners();
         return false;
       }
@@ -221,20 +232,36 @@ class AuthProvider extends ChangeNotifier {
       // Chegou aqui, mas não deveria (caso inesperado)
       _isLoading = false;
       _errorMessage = 'Resposta inesperada do servidor';
+      print('⚠️ Resposta sem corpo com status ${response.statusCode}');
       notifyListeners();
       return false;
       
+    } on TimeoutException catch (e) {
+      // Timeout específico
+      _isLoading = false;
+      _errorMessage = 'Tempo esgotado. Verifique sua conexão e tente novamente.';
+      print('⏱️ Timeout: $e');
+      notifyListeners();
+      return false;
+    } on SocketException catch (e) {
+      // Erro de conexão de rede
+      _isLoading = false;
+      _errorMessage = 'Sem conexão com o servidor. Verifique:\n'
+          '• Se está conectado à internet\n'
+          '• Se o servidor está rodando\n'
+          '• Se a URL está correta ($baseUrlApi)';
+      print('🌐 Erro de rede: $e');
+      notifyListeners();
+      return false;
     } catch (e) {
       // Erro de conexão ou outro erro inesperado
       _isLoading = false;
-      _errorMessage = 'Erro de conexão: verifique sua internet';
-      // print('Erro de conexão: $e');
+      _errorMessage = 'Erro inesperado: ${e.toString()}';
+      print('❌ Erro inesperado: $e');
       notifyListeners();
       return false;
     }
-  }
-
-  Future<void> logout() async {
+  }  Future<void> logout() async {
     _user = null;
   _token = null;
     await _saveUserData();

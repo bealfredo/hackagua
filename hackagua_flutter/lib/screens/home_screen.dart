@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 // Importa os pacotes de formatação de data
-import 'package:intl/intl.dart';
-import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart' as intl;
 
 // Esta tela precisa ser um StatefulWidget para guardar
 // o item que está selecionado na barra de navegação inferior (BottomNavigationBar).
@@ -28,17 +27,14 @@ class _HomeScreenState extends State<HomeScreen> {
     _initializeDate();
   }
 
-  void _initializeDate() async {
-    // Carrega as regras de formatação para 'pt_BR'
-    await initializeDateFormatting('pt_BR', null);
-    
-    // Formata a data atual
+  void _initializeDate() {
+    // Formata a data atual (já passando a locale 'pt_BR' para o DateFormat)
     // 'EEEE' = dia da semana por extenso (ex: quarta-feira)
     // 'd' = dia do mês
     // 'MMMM' = mês por extenso (ex: outubro)
-    var formatter = DateFormat('EEEE, d \'de\' MMMM', 'pt_BR');
+    var formatter = intl.DateFormat('EEEE, d \'de\' MMMM', 'pt_BR');
     String date = formatter.format(DateTime.now());
-    
+
     // Atualiza o estado para exibir a data na tela
     setState(() {
       // Deixa a primeira letra maiúscula (ex: "Quarta-feira...")
@@ -61,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       // Cor de fundo da tela (um cinza bem claro, como na imagem)
       backgroundColor: const Color(0xFFF7F9FA),
-      
+
       // --- Barra de Navegação Inferior ---
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
@@ -90,7 +86,8 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedItemColor: Colors.green[700], // Cor do item ativo
         unselectedItemColor: Colors.grey[600], // Cor dos itens inativos
         onTap: _onItemTapped, // Função chamada ao tocar
-        type: BottomNavigationBarType.fixed, // Garante que todos os 4 itens apareçam
+        type: BottomNavigationBarType
+            .fixed, // Garante que todos os 4 itens apareçam
         backgroundColor: Colors.white, // Fundo da barra
         elevation: 2.0, // Sombra
       ),
@@ -108,7 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 // 1. Cabeçalho (Logo, Data, Status)
                 _buildHeader(),
                 const SizedBox(height: 16),
-                
+
                 // 2. Card "Simular banho"
                 _buildSimularBanhoCard(),
                 const SizedBox(height: 16),
@@ -156,16 +153,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 Text(
                   _formattedDate, // Usa a data formatada
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
               ],
             ),
           ],
         ),
-        
+
         // Lado Direito: Status "Monitorando"
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -213,9 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
       style: OutlinedButton.styleFrom(
         backgroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         side: BorderSide(color: Colors.grey[300]!, width: 1.5),
       ),
     );
@@ -268,17 +260,14 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            
+
             // Linha 2: Meta
             Text(
               "Meta diária: $metaDiaria minutos",
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
             const SizedBox(height: 16),
-            
+
             // Linha 3: Barra de Progresso
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
@@ -290,14 +279,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            
+
             // Linha 4: % da meta
             Text(
               "${(progresso * 100).toInt()}% da meta alcançada",
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ],
         ),
@@ -334,10 +320,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
               child: Row(
                 children: [
-                  Text(
-                    "Ver todos",
-                    style: TextStyle(color: Colors.blue[700]),
-                  ),
+                  Text("Ver todos", style: TextStyle(color: Colors.blue[700])),
                   Icon(Icons.chevron_right, color: Colors.blue[700], size: 18),
                 ],
               ),
@@ -345,7 +328,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         const SizedBox(height: 8),
-        
+
         // Card de Alerta
         Card(
           elevation: 0.5,
@@ -370,10 +353,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 4),
                 Text(
                   "Você já usou 18 minutos de água hoje, 60% da sua meta.",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -423,7 +403,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const SizedBox(width: 16),
-        
+
         // Botão 2: Ver histórico
         Expanded(
           child: Card(

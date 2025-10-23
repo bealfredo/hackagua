@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../models/desperdicio_agua.dart';
+import '../services/calculo_economia_service.dart';
+import 'detalhes_economia_screen.dart';
+
 class AlertasScreen extends StatelessWidget {
   const AlertasScreen({Key? key}) : super(key: key);
 
@@ -20,34 +24,40 @@ class AlertasScreen extends StatelessWidget {
             children: [
               // 1. Cabeçalho "Alertas"
               _buildHeader(),
-              
+
               // 2. Seção "Não lidos"
               _buildSectionHeader("Não lidos"),
               _buildNaoLidoCard(),
-              
+
               // 3. Seção "Anteriores"
               _buildSectionHeader("Anteriores"),
-              
-              // Card "Crítico"
-              _buildAlertaAnteriorCard(
+
+              // Card "Crítico" - Vazamento Noturno
+              _buildAlertaComEconomiaCard(
+                context,
                 icon: Icons.warning_amber_rounded,
                 iconColor: Colors.red[700]!,
                 title: "Água detectada à noite",
-                subtitle: "Som de água detectado às 2:30 da madrugada. Verifique possível vazamento.",
+                subtitle:
+                    "Som de água detectado às 2:30 da madrugada. Verifique possível vazamento.",
                 tagText: "Crítico",
                 tagBgColor: Colors.red[50]!,
                 tagFgColor: Colors.red[800]!,
+                tipoDesperdicio: TipoDesperdicio.vazamentoNoturno,
               ),
-              
-              // Card "Informação"
-              _buildAlertaAnteriorCard(
+
+              // Card "Informação" - Banho Longo
+              _buildAlertaComEconomiaCard(
+                context,
                 icon: Icons.info_outline,
                 iconColor: Colors.blue[700]!,
                 title: "Banho longo detectado",
-                subtitle: "Seu último banho durou 9 minutos. Considere reduzir o tempo.",
+                subtitle:
+                    "Seu último banho durou 15 minutos. Considere reduzir o tempo para 5 minutos.",
                 tagText: "Informação",
                 tagBgColor: Colors.blue[50]!,
                 tagFgColor: Colors.blue[800]!,
+                tipoDesperdicio: TipoDesperdicio.banhoLongo,
               ),
 
               // Espaço no final
@@ -77,10 +87,7 @@ class AlertasScreen extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             "1 novo",
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
           ),
         ],
       ),
@@ -126,7 +133,11 @@ class AlertasScreen extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.error_outline, color: Colors.orange[700], size: 28),
+                  Icon(
+                    Icons.error_outline,
+                    color: Colors.orange[700],
+                    size: 28,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -158,16 +169,19 @@ class AlertasScreen extends StatelessWidget {
               const SizedBox(height: 12),
               Divider(color: Colors.grey[300]),
               const SizedBox(height: 4),
-              
+
               // --- Botões de Ação ---
               Row(
                 children: [
                   OutlinedButton.icon(
                     icon: const Icon(Icons.check, size: 18),
                     label: const Text("Marcar como visto"),
-                    onPressed: () { /* Lógica para marcar como visto */ },
+                    onPressed: () {
+                      /* Lógica para marcar como visto */
+                    },
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.grey[800], padding: const EdgeInsets.symmetric(horizontal: 12),
+                      foregroundColor: Colors.grey[800],
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                       side: BorderSide(color: Colors.grey[400]!),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -176,9 +190,14 @@ class AlertasScreen extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   TextButton.icon(
-                    icon: const Icon(Icons.notifications_off_outlined, size: 18),
+                    icon: const Icon(
+                      Icons.notifications_off_outlined,
+                      size: 18,
+                    ),
                     label: const Text("Silenciar por 24h"),
-                    onPressed: () { /* Lógica para silenciar */ },
+                    onPressed: () {
+                      /* Lógica para silenciar */
+                    },
                     style: TextButton.styleFrom(
                       foregroundColor: Colors.grey[700],
                     ),
@@ -233,10 +252,7 @@ class AlertasScreen extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[700],
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                     ),
                   ],
                 ),
@@ -266,6 +282,245 @@ class AlertasScreen extends StatelessWidget {
           fontSize: 12,
         ),
       ),
+    );
+  }
+
+  /// Constrói um card de alerta com cálculo de economia de água
+  Widget _buildAlertaComEconomiaCard(
+    BuildContext context, {
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required String tagText,
+    required Color tagBgColor,
+    required Color tagFgColor,
+    required TipoDesperdicio tipoDesperdicio,
+  }) {
+    // Criar uma detecção de desperdício
+    final deteccao = DeteccaoDesperdicio(
+      tipo: tipoDesperdicio,
+      dataHora: DateTime.now(),
+    );
+
+    // Calcular economia
+    final economia = CalculoEconomiaService.calcularEconomiaDesperdicio(
+      deteccao,
+    );
+    final economiaMensal = CalculoEconomiaService.calcularEconomiaMensal(
+      tipoDesperdicio,
+      diasPorMes: 30,
+      ocorrenciasPorDia: 1,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Card(
+        elevation: 0.5,
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.grey[200]!, width: 1),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Cabeçalho do alerta
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(icon, color: iconColor, size: 28),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _buildTag(tagText, tagBgColor, tagFgColor),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+              Divider(color: Colors.grey[300], height: 1),
+              const SizedBox(height: 16),
+
+              // Seção de Economia
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green[200]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.water_drop,
+                          color: Colors.green[700],
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          "💰 Economia Potencial",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green[900],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Economia por ocorrência
+                    _buildEconomiaItem(
+                      "Por ocorrência:",
+                      "${CalculoEconomiaService.formatarLitros(economia.litrosEconomizados)} • ${CalculoEconomiaService.formatarReais(economia.valorEconomizadoReais)}",
+                      Colors.green[700]!,
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Economia mensal
+                    _buildEconomiaItem(
+                      "Economia mensal:",
+                      "${CalculoEconomiaService.formatarLitros(economiaMensal.litrosEconomizadosMensal)} • ${CalculoEconomiaService.formatarReais(economiaMensal.valorEconomizadoMensalReais)}",
+                      Colors.green[800]!,
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Economia anual
+                    _buildEconomiaItem(
+                      "Economia anual:",
+                      CalculoEconomiaService.formatarReais(
+                        economiaMensal.economiaAnual,
+                      ),
+                      Colors.green[900]!,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Dica de economia
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.lightbulb_outline,
+                      color: Colors.blue[700],
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "💡 Dica para economizar",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue[900],
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            tipoDesperdicio.dicaEconomia,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.blue[800],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Botão para ver detalhes
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DetalhesEconomiaScreen(
+                          tipoDesperdicio: tipoDesperdicio,
+                          tituloAlerta: title,
+                          descricaoAlerta: subtitle,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.info_outline, size: 18),
+                  label: const Text("Ver detalhes completos"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue[700],
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Widget auxiliar para exibir um item de economia
+  Widget _buildEconomiaItem(String label, String valor, Color color) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[700])),
+        Text(
+          valor,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+      ],
     );
   }
 }

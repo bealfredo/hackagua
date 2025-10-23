@@ -43,15 +43,19 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
+            // Garante que a largura máxima nunca seja negativa
             final maxWidth = constraints.maxWidth < 600
-                ? constraints.maxWidth - 32
+                ? (constraints.maxWidth - 64).clamp(280.0, double.infinity)
                 : 480.0;
 
             return Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: maxWidth),
+                  constraints: BoxConstraints(
+                    maxWidth: maxWidth,
+                    minWidth: 280.0, // Largura mínima garantida
+                  ),
                   child: Container(
                     padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
                     decoration: BoxDecoration(
