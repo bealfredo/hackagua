@@ -1,0 +1,16 @@
+{
+  "classes": [
+    "chuveiro",
+    "escovando_dentes",
+    "goteira",
+    "som_descarga",
+    "torneira_aberta"
+  ],
+  "sample_rate": 16000,
+  "duration": 5,
+  "model_info": "YAMNet + Custom Classifier",
+  "input_shape": [
+    80000
+  ],
+  "expected_waveform_length": 80000
+}

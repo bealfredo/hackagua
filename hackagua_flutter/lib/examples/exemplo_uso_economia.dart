@@ -1,43 +1,56 @@
-// lib/examples/exemplo_uso_economia.dart
+library exemplo_uso_economia;
 
-/// EXEMPLOS DE USO DO SISTEMA DE CÁLCULO DE ECONOMIA
-/// 
-/// Este arquivo contém exemplos práticos de como usar o sistema
-/// de cálculo de economia de água no seu projeto.
+import 'package:flutter/foundation.dart';
 
 import '../models/desperdicio_agua.dart';
 import '../services/calculo_economia_service.dart';
 
 /// EXEMPLO 1: Detectar e calcular economia de um banho longo
 void exemploDeteccaoBanhoLongo() {
-  print('\n=== EXEMPLO 1: Banho Longo ===\n');
+  debugPrint('\n=== EXEMPLO 1: Banho Longo ===\n');
   
   // Criar detecção
   final deteccao = DeteccaoDesperdicio(
     tipo: TipoDesperdicio.banhoLongo,
-    dataHora: DateTime.now(),
-    observacao: 'Banho detectado com duração de 15 minutos',
+    data: DateTime.now(),
+    duracaoSegundos: 900, // 15 minutos
+    gastoLitros: 180, // ~12L/min * 15min
   );
   
   // Calcular economia
   final economia = CalculoEconomiaService.calcularEconomiaDesperdicio(deteccao);
   
-  print('📊 Detecção: ${deteccao.tipo.nome}');
-  print('💧 Água desperdiçada: ${economia.litrosEconomizados} litros');
-  print('💰 Valor desperdiçado: ${CalculoEconomiaService.formatarReais(economia.valorEconomizadoReais)}');
-  print('');
-  print('💡 Dica: ${deteccao.tipo.dicaEconomia}');
+  debugPrint('📊 Detecção: ${deteccao.tipo.nome}');
+  debugPrint('💧 Água desperdiçada: ${economia.litrosEconomizados} litros');
+  debugPrint('💰 Valor desperdiçado: ${CalculoEconomiaService.formatarReais(economia.valorEconomizadoReais)}');
+  debugPrint('');
+  debugPrint('💡 Dica: ${deteccao.tipo.dicaEconomia}');
 }
 
 /// EXEMPLO 2: Calcular economia mensal de múltiplos desperdícios
 void exemploEconomiaMensal() {
-  print('\n=== EXEMPLO 2: Economia Mensal ===\n');
+  debugPrint('\n=== EXEMPLO 2: Economia Mensal ===\n');
   
   // Simular detecções do dia
   final deteccoesHoje = [
-    DeteccaoDesperdicio(tipo: TipoDesperdicio.banhoLongo, dataHora: DateTime.now()),
-    DeteccaoDesperdicio(tipo: TipoDesperdicio.torneiraAberta, dataHora: DateTime.now()),
-    DeteccaoDesperdicio(tipo: TipoDesperdicio.banhoLongo, dataHora: DateTime.now()),
+    DeteccaoDesperdicio(
+      tipo: TipoDesperdicio.banhoLongo,
+      data: DateTime.now(),
+      duracaoSegundos: 900, // 15 minutos
+      gastoLitros: 180, // ~12L/min * 15min
+    ),
+    DeteccaoDesperdicio(
+      tipo: TipoDesperdicio.torneiraAberta,
+      data: DateTime.now(),
+      duracaoSegundos: 300, // 5 minutos
+      gastoLitros: 60, // ~12L/min * 5min
+    ),
+    DeteccaoDesperdicio(
+      tipo: TipoDesperdicio.banhoLongo,
+      data: DateTime.now(),
+      duracaoSegundos: 900, // 15 minutos
+      gastoLitros: 180, // ~12L/min * 15min
+    ),
   ];
   
   double totalLitros = 0;
@@ -49,24 +62,24 @@ void exemploEconomiaMensal() {
     totalReais += resultado.valorEconomizadoReais;
   }
   
-  print('📅 Desperdícios detectados hoje: ${deteccoesHoje.length}');
-  print('💧 Total desperdiçado hoje: ${CalculoEconomiaService.formatarLitros(totalLitros)}');
-  print('💰 Valor desperdiçado hoje: ${CalculoEconomiaService.formatarReais(totalReais)}');
-  print('');
+  debugPrint('📅 Desperdícios detectados hoje: ${deteccoesHoje.length}');
+  debugPrint('💧 Total desperdiçado hoje: ${CalculoEconomiaService.formatarLitros(totalLitros)}');
+  debugPrint('💰 Valor desperdiçado hoje: ${CalculoEconomiaService.formatarReais(totalReais)}');
+  debugPrint('');
   
   // Projeção mensal
   double projecaoMensalLitros = totalLitros * 30;
   double projecaoMensalReais = totalReais * 30;
   
-  print('📈 PROJEÇÃO MENSAL (se continuar assim):');
-  print('💧 Desperdício mensal: ${CalculoEconomiaService.formatarLitros(projecaoMensalLitros)}');
-  print('💰 Custo mensal: ${CalculoEconomiaService.formatarReais(projecaoMensalReais)}');
-  print('💰 Custo anual: ${CalculoEconomiaService.formatarReais(projecaoMensalReais * 12)}');
+  debugPrint('📈 PROJEÇÃO MENSAL (se continuar assim):');
+  debugPrint('💧 Desperdício mensal: ${CalculoEconomiaService.formatarLitros(projecaoMensalLitros)}');
+  debugPrint('💰 Custo mensal: ${CalculoEconomiaService.formatarReais(projecaoMensalReais)}');
+  debugPrint('💰 Custo anual: ${CalculoEconomiaService.formatarReais(projecaoMensalReais * 12)}');
 }
 
 /// EXEMPLO 3: Calcular impacto de corrigir um vazamento
 void exemploCorrigirVazamento() {
-  print('\n=== EXEMPLO 3: Corrigir Vazamento ===\n');
+  debugPrint('\n=== EXEMPLO 3: Corrigir Vazamento ===\n');
   
   final economiaMensal = CalculoEconomiaService.calcularEconomiaMensal(
     TipoDesperdicio.torneiraPingando,
@@ -74,21 +87,21 @@ void exemploCorrigirVazamento() {
     ocorrenciasPorDia: 1,
   );
   
-  print('🔧 Situação: Torneira pingando constantemente');
-  print('');
-  print('💧 Desperdício por dia: ${TipoDesperdicio.torneiraPingando.consumoMedioLitros} litros');
-  print('');
-  print('📊 SE VOCÊ CONSERTAR:');
-  print('  • Economia mensal: ${CalculoEconomiaService.formatarLitros(economiaMensal.litrosEconomizadosMensal)}');
-  print('  • Economia em dinheiro/mês: ${CalculoEconomiaService.formatarReais(economiaMensal.valorEconomizadoMensalReais)}');
-  print('  • Economia anual: ${CalculoEconomiaService.formatarReais(economiaMensal.economiaAnual)}');
-  print('');
-  print('💡 ${TipoDesperdicio.torneiraPingando.dicaEconomia}');
+  debugPrint('🔧 Situação: Torneira pingando constantemente');
+  debugPrint('');
+  debugPrint('💧 Desperdício estimado: 2 litros por ocorrência');
+  debugPrint('');
+  debugPrint('📊 SE VOCÊ CONSERTAR:');
+  debugPrint('  • Economia mensal: ${CalculoEconomiaService.formatarLitros(economiaMensal.litrosEconomizadosMensal)}');
+  debugPrint('  • Economia em dinheiro/mês: ${CalculoEconomiaService.formatarReais(economiaMensal.valorEconomizadoMensalReais)}');
+  debugPrint('  • Economia anual: ${CalculoEconomiaService.formatarReais(economiaMensal.economiaAnual)}');
+  debugPrint('');
+  debugPrint('💡 ${TipoDesperdicio.torneiraPingando.dicaEconomia}');
 }
 
 /// EXEMPLO 4: Comparar impacto de diferentes tipos de desperdício
 void exemploComparacao() {
-  print('\n=== EXEMPLO 4: Comparação de Desperdícios ===\n');
+  debugPrint('\n=== EXEMPLO 4: Comparação de Desperdícios ===\n');
   
   final tipos = [
     TipoDesperdicio.banhoLongo,
@@ -96,7 +109,7 @@ void exemploComparacao() {
     TipoDesperdicio.vazamentoNoturno,
   ];
   
-  print('Comparando impacto anual de cada tipo de desperdício:\n');
+  debugPrint('Comparando impacto anual de cada tipo de desperdício:\n');
   
   for (var tipo in tipos) {
     final mensal = CalculoEconomiaService.calcularEconomiaMensal(
@@ -105,17 +118,17 @@ void exemploComparacao() {
       ocorrenciasPorDia: 1,
     );
     
-    print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    print('🚰 ${tipo.nome}');
-    print('   Consumo/dia: ${tipo.consumoMedioLitros} L');
-    print('   Custo anual: ${CalculoEconomiaService.formatarReais(mensal.economiaAnual)}');
-    print('');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('🚰 ${tipo.nome}');
+    debugPrint('   Economia mensal: ${CalculoEconomiaService.formatarLitros(mensal.litrosEconomizadosMensal)}');
+    debugPrint('   Custo anual: ${CalculoEconomiaService.formatarReais(mensal.economiaAnual)}');
+    debugPrint('');
   }
 }
 
 /// EXEMPLO 5: Calcular economia de uma família
 void exemploFamilia() {
-  print('\n=== EXEMPLO 5: Família de 4 Pessoas ===\n');
+  debugPrint('\n=== EXEMPLO 5: Família de 4 Pessoas ===\n');
   
   // Cenário: Família onde todos tomam banhos longos
   final mensalPorPessoa = CalculoEconomiaService.calcularEconomiaMensal(
@@ -130,90 +143,93 @@ void exemploFamilia() {
     ocorrenciasPorDia: 4, // 4 pessoas
   );
   
-  print('👨‍👩‍👧‍👦 Família de 4 pessoas');
-  print('🚿 Todos tomam banhos de 15 minutos diariamente');
-  print('');
-  print('📊 ECONOMIA POR PESSOA:');
-  print('  • Por mês: ${CalculoEconomiaService.formatarReais(mensalPorPessoa.valorEconomizadoMensalReais)}');
-  print('  • Por ano: ${CalculoEconomiaService.formatarReais(mensalPorPessoa.economiaAnual)}');
-  print('');
-  print('📊 ECONOMIA TOTAL DA FAMÍLIA:');
-  print('  • Água/mês: ${CalculoEconomiaService.formatarLitros(mensalFamilia.litrosEconomizadosMensal)}');
-  print('  • Dinheiro/mês: ${CalculoEconomiaService.formatarReais(mensalFamilia.valorEconomizadoMensalReais)}');
-  print('  • Dinheiro/ano: ${CalculoEconomiaService.formatarReais(mensalFamilia.economiaAnual)}');
-  print('');
-  print('💰 Se reduzirem os banhos para 5 minutos, a família economizará');
-  print('   ${CalculoEconomiaService.formatarReais(mensalFamilia.economiaAnual)} por ano!');
+  debugPrint('👨‍👩‍👧‍👦 Família de 4 pessoas');
+  debugPrint('🚿 Todos tomam banhos de 15 minutos diariamente');
+  debugPrint('');
+  debugPrint('📊 ECONOMIA POR PESSOA:');
+  debugPrint('  • Por mês: ${CalculoEconomiaService.formatarReais(mensalPorPessoa.valorEconomizadoMensalReais)}');
+  debugPrint('  • Por ano: ${CalculoEconomiaService.formatarReais(mensalPorPessoa.economiaAnual)}');
+  debugPrint('');
+  debugPrint('📊 ECONOMIA TOTAL DA FAMÍLIA:');
+  debugPrint('  • Água/mês: ${CalculoEconomiaService.formatarLitros(mensalFamilia.litrosEconomizadosMensal)}');
+  debugPrint('  • Dinheiro/mês: ${CalculoEconomiaService.formatarReais(mensalFamilia.valorEconomizadoMensalReais)}');
+  debugPrint('  • Dinheiro/ano: ${CalculoEconomiaService.formatarReais(mensalFamilia.economiaAnual)}');
+  debugPrint('');
+  debugPrint('💰 Se reduzirem os banhos para 5 minutos, a família economizará');
+  debugPrint('   ${CalculoEconomiaService.formatarReais(mensalFamilia.economiaAnual)} por ano!');
 }
 
 /// EXEMPLO 6: Simular conta de água
 void exemploSimularConta() {
-  print('\n=== EXEMPLO 6: Simulador de Conta de Água ===\n');
+  debugPrint('\n=== EXEMPLO 6: Simulador de Conta de Água ===\n');
   
   // Consumos diferentes em m³
   final consumos = [5.0, 10.0, 15.0, 20.0, 30.0];
   
-  print('Simulação de conta de água (Tocantins - BRK Ambiental):\n');
-  print('Consumo (m³) │ Consumo (L)  │ Valor Total');
-  print('─────────────┼──────────────┼─────────────');
+  debugPrint('Simulação de conta de água (Tocantins - BRK Ambiental):\n');
+  debugPrint('Consumo (m³) │ Consumo (L)  │ Valor Total');
+  debugPrint('─────────────┼──────────────┼─────────────');
   
   for (var m3 in consumos) {
     final valor = CalculoEconomiaService.calcularValorConsumo(m3);
     final litros = (m3 * 1000).toInt();
     
-    print('${m3.toString().padRight(12)} │ ${litros.toString().padRight(12)} │ ${CalculoEconomiaService.formatarReais(valor)}');
+    debugPrint('${m3.toString().padRight(12)} │ ${litros.toString().padRight(12)} │ ${CalculoEconomiaService.formatarReais(valor)}');
   }
   
-  print('');
-  print('ℹ️  Valores incluem água + esgoto (80%)');
-  print('ℹ️  Consumo mínimo cobrado: 5 m³');
+  debugPrint('');
+  debugPrint('ℹ️  Valores incluem água + esgoto (80%)');
+  debugPrint('ℹ️  Consumo mínimo cobrado: 5 m³');
 }
 
 /// EXEMPLO 7: Calcular custo por litro em diferentes faixas
 void exemploCustoPorLitro() {
-  print('\n=== EXEMPLO 7: Custo por Litro ===\n');
+  debugPrint('\n=== EXEMPLO 7: Custo por Litro ===\n');
   
   final consumos = [5.0, 10.0, 20.0, 30.0, 50.0];
   
-  print('Como o custo por litro varia com o consumo:\n');
-  print('Consumo │ Custo/Litro');
-  print('────────┼────────────');
+  debugPrint('Como o custo por litro varia com o consumo:\n');
+  debugPrint('Consumo │ Custo/Litro');
+  debugPrint('────────┼────────────');
   
   for (var m3 in consumos) {
     final custoPorLitro = CalculoEconomiaService.calcularCustoPorLitro(m3);
     
-    print('${m3.toStringAsFixed(0).padRight(7)} │ R\$ ${(custoPorLitro * 1000).toStringAsFixed(2)} por 1000L');
+    debugPrint('${m3.toStringAsFixed(0).padRight(7)} │ R\$ ${(custoPorLitro * 1000).toStringAsFixed(2)} por 1000L');
   }
   
-  print('');
-  print('💡 Quanto mais você consome, mais caro fica cada litro!');
-  print('   Isso incentiva a economia de água.');
+  debugPrint('');
+  debugPrint('💡 Quanto mais você consome, mais caro fica cada litro!');
+  debugPrint('   Isso incentiva a economia de água.');
 }
 
 /// EXEMPLO 8: Detectar múltiplos tipos no mesmo dia
 void exemploMultiplosAlertas() {
-  print('\n=== EXEMPLO 8: Múltiplos Alertas em um Dia ===\n');
+  debugPrint('\n=== EXEMPLO 8: Múltiplos Alertas em um Dia ===\n');
   
   // Simular detecções ao longo do dia
   final deteccoes = [
     DeteccaoDesperdicio(
       tipo: TipoDesperdicio.banhoLongo,
-      dataHora: DateTime(2025, 10, 23, 7, 30),
-      observacao: 'Banho da manhã - 15 minutos',
+      data: DateTime(2025, 10, 23, 7, 30),
+      duracaoSegundos: 900, // 15 minutos
+      gastoLitros: 180, // ~12L/min * 15min
     ),
     DeteccaoDesperdicio(
       tipo: TipoDesperdicio.torneiraAberta,
-      dataHora: DateTime(2025, 10, 23, 8, 15),
-      observacao: 'Torneira aberta durante escovação',
+      data: DateTime(2025, 10, 23, 8, 15),
+      duracaoSegundos: 180, // 3 minutos
+      gastoLitros: 36, // ~12L/min * 3min
     ),
     DeteccaoDesperdicio(
       tipo: TipoDesperdicio.vazamentoNoturno,
-      dataHora: DateTime(2025, 10, 23, 2, 30),
-      observacao: 'Som de água às 2:30 AM',
+      data: DateTime(2025, 10, 23, 2, 30),
+      duracaoSegundos: 3600, // 1 hora detectado
+      gastoLitros: 50, // vazamento constante
     ),
   ];
   
-  print('📅 Detecções de 23/10/2025:\n');
+  debugPrint('📅 Detecções de 23/10/2025:\n');
   
   double totalLitros = 0;
   double totalReais = 0;
@@ -223,27 +239,27 @@ void exemploMultiplosAlertas() {
     totalLitros += economia.litrosEconomizados;
     totalReais += economia.valorEconomizadoReais;
     
-    print('⏰ ${deteccao.dataHora.hour}:${deteccao.dataHora.minute.toString().padLeft(2, '0')}');
-    print('   ${deteccao.tipo.nome}');
-    print('   💧 ${economia.litrosEconomizados} L • 💰 ${CalculoEconomiaService.formatarReais(economia.valorEconomizadoReais)}');
-    print('');
+    debugPrint('⏰ ${deteccao.dataHora.hour}:${deteccao.dataHora.minute.toString().padLeft(2, '0')}');
+    debugPrint('   ${deteccao.tipo.nome}');
+    debugPrint('   💧 ${economia.litrosEconomizados} L • 💰 ${CalculoEconomiaService.formatarReais(economia.valorEconomizadoReais)}');
+    debugPrint('');
   }
   
-  print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  print('📊 RESUMO DO DIA');
-  print('   Total desperdiçado: ${CalculoEconomiaService.formatarLitros(totalLitros)}');
-  print('   Custo total: ${CalculoEconomiaService.formatarReais(totalReais)}');
-  print('');
-  print('⚠️  Se corrigir esses desperdícios, você economizará');
-  print('   ${CalculoEconomiaService.formatarReais(totalReais * 30)}/mês!');
+  debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  debugPrint('📊 RESUMO DO DIA');
+  debugPrint('   Total desperdiçado: ${CalculoEconomiaService.formatarLitros(totalLitros)}');
+  debugPrint('   Custo total: ${CalculoEconomiaService.formatarReais(totalReais)}');
+  debugPrint('');
+  debugPrint('⚠️  Se corrigir esses desperdícios, você economizará');
+  debugPrint('   ${CalculoEconomiaService.formatarReais(totalReais * 30)}/mês!');
 }
 
 /// Executar todos os exemplos
 void main() {
-  print('╔═══════════════════════════════════════════════════════════╗');
-  print('║  SISTEMA DE CÁLCULO DE ECONOMIA DE ÁGUA - HACKÁGUA       ║');
-  print('║  Tarifas BRK Ambiental - Tocantins (2025)                ║');
-  print('╚═══════════════════════════════════════════════════════════╝');
+  debugPrint('╔═══════════════════════════════════════════════════════════╗');
+  debugPrint('║  SISTEMA DE CÁLCULO DE ECONOMIA DE ÁGUA - HACKÁGUA       ║');
+  debugPrint('║  Tarifas BRK Ambiental - Tocantins (2025)                ║');
+  debugPrint('╚═══════════════════════════════════════════════════════════╝');
   
   exemploDeteccaoBanhoLongo();
   exemploEconomiaMensal();
@@ -254,9 +270,9 @@ void main() {
   exemploCustoPorLitro();
   exemploMultiplosAlertas();
   
-  print('\n');
-  print('═══════════════════════════════════════════════════════════');
-  print('💡 Dica: Use esses cálculos no seu app para motivar');
-  print('   os usuários a economizar água e dinheiro!');
-  print('═══════════════════════════════════════════════════════════\n');
+  debugPrint('\n');
+  debugPrint('═══════════════════════════════════════════════════════════');
+  debugPrint('💡 Dica: Use esses cálculos no seu app para motivar');
+  debugPrint('   os usuários a economizar água e dinheiro!');
+  debugPrint('═══════════════════════════════════════════════════════════\n');
 }

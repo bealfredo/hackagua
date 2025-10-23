@@ -1,8 +1,8 @@
 // lib/screens/detalhes_economia_screen.dart
 
 import 'package:flutter/material.dart';
-import '../models/desperdicio_agua.dart';
-import '../services/calculo_economia_service.dart';
+import 'package:hackagua_flutter/models/desperdicio_agua.dart';
+import 'package:hackagua_flutter/services/calculo_economia_service.dart';
 
 /// Tela que mostra detalhes de economia para um tipo específico de desperdício
 class DetalhesEconomiaScreen extends StatelessWidget {
@@ -22,10 +22,14 @@ class DetalhesEconomiaScreen extends StatelessWidget {
     // Calcular economias
     final deteccao = DeteccaoDesperdicio(
       tipo: tipoDesperdicio,
-      dataHora: DateTime.now(),
+      data: DateTime.now(),
+      duracaoSegundos: 300, // 5 minutos padrão
+      gastoLitros: 60, // ~12L/min * 5min
     );
-    
-    final economia = CalculoEconomiaService.calcularEconomiaDesperdicio(deteccao);
+
+    final economia = CalculoEconomiaService.calcularEconomiaDesperdicio(
+      deteccao,
+    );
     final economiaMensal = CalculoEconomiaService.calcularEconomiaMensal(
       tipoDesperdicio,
       diasPorMes: 30,
@@ -85,7 +89,7 @@ class DetalhesEconomiaScreen extends StatelessWidget {
   Widget _buildAlertCard() {
     IconData icon;
     Color iconColor;
-    
+
     switch (tipoDesperdicio) {
       case TipoDesperdicio.banhoLongo:
         icon = Icons.shower;
@@ -147,10 +151,7 @@ class DetalhesEconomiaScreen extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       tipoDesperdicio.nome,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     ),
                   ],
                 ),
@@ -198,12 +199,14 @@ class DetalhesEconomiaScreen extends StatelessWidget {
               children: [
                 Icon(icon, color: Colors.blue[700], size: 24),
                 const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[900],
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[900],
+                    ),
                   ),
                 ),
               ],
@@ -227,9 +230,18 @@ class DetalhesEconomiaScreen extends StatelessWidget {
           style: TextStyle(fontSize: 15, color: Colors.grey[700]),
         ),
         const SizedBox(height: 16),
-        _buildCalculoStep("1", "Medimos o volume de água desperdiçado em litros"),
-        _buildCalculoStep("2", "Convertemos para metros cúbicos (m³ = 1.000 litros)"),
-        _buildCalculoStep("3", "Aplicamos a tarifa progressiva por faixa de consumo"),
+        _buildCalculoStep(
+          "1",
+          "Medimos o volume de água desperdiçado em litros",
+        ),
+        _buildCalculoStep(
+          "2",
+          "Convertemos para metros cúbicos (m³ = 1.000 litros)",
+        ),
+        _buildCalculoStep(
+          "3",
+          "Aplicamos a tarifa progressiva por faixa de consumo",
+        ),
         _buildCalculoStep("4", "Adicionamos 80% de taxa de esgoto"),
       ],
     );
@@ -371,10 +383,7 @@ class DetalhesEconomiaScreen extends StatelessWidget {
                   ),
                   Text(
                     "de água",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: cor[700],
-                    ),
+                    style: TextStyle(fontSize: 12, color: cor[700]),
                   ),
                 ],
               ),
@@ -391,10 +400,7 @@ class DetalhesEconomiaScreen extends StatelessWidget {
                   ),
                   Text(
                     "economizados",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: cor[700],
-                    ),
+                    style: TextStyle(fontSize: 12, color: cor[700]),
                   ),
                 ],
               ),
@@ -520,7 +526,9 @@ class DetalhesEconomiaScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        _buildDicaItem("Instale arejadores nas torneiras (economia de até 60%)"),
+        _buildDicaItem(
+          "Instale arejadores nas torneiras (economia de até 60%)",
+        ),
         _buildDicaItem("Use bacias sanitárias com duplo acionamento (3/6L)"),
         _buildDicaItem("Coloque um balde no chuveiro para reutilizar água"),
         _buildDicaItem("Conserte vazamentos imediatamente"),

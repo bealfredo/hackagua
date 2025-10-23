@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class HistoricoScreen extends StatefulWidget {
-  const HistoricoScreen({Key? key}) : super(key: key);
+  const HistoricoScreen({super.key});
 
   @override
   State<HistoricoScreen> createState() => _HistoricoScreenState();
@@ -106,32 +106,33 @@ class _HistoricoScreenState extends State<HistoricoScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    "Consumo por dia",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[800],
+                  Expanded(
+                    child: Text(
+                      "Consumo por dia",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[800],
+                      ),
                     ),
                   ),
                   ToggleButtons(
+                    constraints: const BoxConstraints(minHeight: 0, minWidth: 0),
                     children: const [
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Text("7 dias"),
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        child: Text("7d"),
                       ),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Text("30 dias"),
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        child: Text("30d"),
                       ),
                     ],
                     isSelected: _diasSelecionados,
                     onPressed: (int index) {
                       setState(() {
-                        // Lógica para garantir que apenas um seja selecionado
                         _diasSelecionados = [false, false];
                         _diasSelecionados[index] = true;
-                        // TODO: Recarregar os dados do gráfico (7 ou 30 dias)
                       });
                     },
                     borderRadius: BorderRadius.circular(20),
@@ -146,7 +147,7 @@ class _HistoricoScreenState extends State<HistoricoScreen> {
               const SizedBox(height: 24),
 
               // --- O Gráfico (placeholder simples) ---
-              Container(
+              SizedBox(
                 height: 200,
                 child: _buildGraficoConsumo(),
               ),
@@ -175,7 +176,7 @@ class _HistoricoScreenState extends State<HistoricoScreen> {
           const SizedBox(height: 16),
 
           // --- Filtros de Eventos ---
-          Container(
+          SizedBox(
             height: 40,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,

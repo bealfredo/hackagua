@@ -2,16 +2,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hackagua_flutter/models/configuracoes.dart';
+import 'package:hackagua_flutter/screens/login/login_screen.dart';
 import 'package:hackagua_flutter/services/config_service.dart'; // Para o campo de texto de números
 
 class ConfigScreen extends StatefulWidget {
-  const ConfigScreen({Key? key}) : super(key: key);
+  const ConfigScreen({super.key});
 
   @override
-  _ConfigScreenState createState() => _ConfigScreenState();
+  ConfigScreenState createState() => ConfigScreenState();
 }
 
-class _ConfigScreenState extends State<ConfigScreen> {
+class ConfigScreenState extends State<ConfigScreen> {
   // Instância do nosso serviço
   final ConfigService _configService = ConfigService();
 
@@ -47,6 +48,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
   Future<void> _carregarConfiguracoes() async {
     try {
       final config = await _configService.getConfiguracoes();
+      if (!mounted) return; // Verifica se o widget ainda está na tela
       // Quando os dados chegam, atualiza as variáveis de estado
       setState(() {
         _endereco = config.geofenceEndereco;
@@ -56,22 +58,19 @@ class _ConfigScreenState extends State<ConfigScreen> {
         _processarSoEmCasa = config.processarSoEmCasa;
         _descartarAudio = config.descartarAudio;
 
-        _metaController.text = config.metaDiaria
-            .toString(); // Atualiza o campo de texto
+        _metaController.text = config.metaDiaria.toString(); // Atualiza o campo de texto
 
         _isLoading = false; // Para o "loading"
       });
     } catch (e) {
+      if (!mounted) return; // Verifica se o widget ainda está na tela
       // Tratar erro (ex: mostrar um SnackBar)
       setState(() {
         _isLoading = false;
       });
-      if (mounted) {
-        // Verifica se o widget ainda está na tela
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao carregar configurações: $e')),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao carregar configurações: $e')),
+      );
     }
   }
 
@@ -139,6 +138,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
                   _buildMetaDiariaCard(),
                   _buildPrivacidadeCard(),
                   _buildSobreCard(),
+                  const SizedBox(height: 24),
+                  _buildLogoutButton(),
                   // Espaçamento extra no final para não colar na barra de navegação
                   const SizedBox(height: 24),
                 ],
@@ -169,6 +170,30 @@ class _ConfigScreenState extends State<ConfigScreen> {
             style: TextStyle(fontSize: 16, color: Colors.grey[600]),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLogoutButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: ElevatedButton.icon(
+        onPressed: () {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+            (Route<dynamic> route) => false,
+          );
+        },
+        icon: const Icon(Icons.logout),
+        label: const Text('Sair'),
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.white,
+          backgroundColor: Colors.red,
+          minimumSize: const Size(double.infinity, 50),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
       ),
     );
   }

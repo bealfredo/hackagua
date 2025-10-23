@@ -31,11 +31,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final List<DeteccaoDesperdicio> deteccoesRecentes = [
     DeteccaoDesperdicio(
       tipo: TipoDesperdicio.banhoLongo,
-      dataHora: DateTime.now().subtract(const Duration(hours: 2)),
+      data: DateTime.now().subtract(const Duration(hours: 2)),
+      duracaoSegundos: 900, // 15 minutos
+      gastoLitros: 180, // ~12L/min * 15min
     ),
     DeteccaoDesperdicio(
       tipo: TipoDesperdicio.vazamentoNoturno,
-      dataHora: DateTime.now().subtract(const Duration(hours: 8)),
+      data: DateTime.now().subtract(const Duration(hours: 8)),
+      duracaoSegundos: 3600, // 1 hora detectado
+      gastoLitros: 50, // estimativa
     ),
   ];
 

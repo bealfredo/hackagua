@@ -1,86 +1,44 @@
 // lib/models/desperdicio_agua.dart
 
-/// Representa os tipos de desperdício de água detectados
+/// Enum que define os tipos de desperdício que o widget espera.
+/// A propriedade 'nome' é usada no seu widget _buildDeteccoesSummary.
 enum TipoDesperdicio {
-  banhoLongo,
-  torneiraPingando,
-  vazamentoNoturno,
-  descargaDemorada,
-  torneiraAberta,
-  chuveiroPingando,
+  TORNEIRA_ABERTA(nome: "Torneira aberta", dicaEconomia: "Feche a torneira ao escovar os dentes ou ensaboar a louça. Economize até 12 litros por minuto!"),
+  torneiraAberta(nome: "Torneira aberta", dicaEconomia: "Feche a torneira ao escovar os dentes ou ensaboar a louça. Economize até 12 litros por minuto!"),
+  BANHO_LONGO(nome: "Banho longo", dicaEconomia: "Reduza seu banho para 5 minutos. Use um cronômetro ou playlist para ajudar. Economize até 90 litros por banho!"),
+  banhoLongo(nome: "Banho longo", dicaEconomia: "Reduza seu banho para 5 minutos. Use um cronômetro ou playlist para ajudar. Economize até 90 litros por banho!"),
+  VAZAMENTO(nome: "Vazamento", dicaEconomia: "Conserte vazamentos imediatamente. Uma torneira pingando pode desperdiçar 46 litros por dia!"),
+  vazamentoNoturno(nome: "Vazamento noturno", dicaEconomia: "Verifique todos os registros e encanamentos à noite. Vazamentos noturnos podem indicar problemas sérios."),
+  torneiraPingando(nome: "Torneira pingando", dicaEconomia: "Troque a borracha ou arruela da torneira. Uma gota por segundo = 46 litros desperdiçados por dia!"),
+  DESCARGA(nome: "Descarga", dicaEconomia: "Use descargas com duplo acionamento (3L/6L) e não use o vaso sanitário como lixeira."),
+  DETECCAO_NOTURNA(nome: "Detecção Noturna", dicaEconomia: "Água correndo à noite pode indicar vazamento. Verifique torneiras, vasos sanitários e caixa d'água.");
+
+  final String nome;
+  final String dicaEconomia;
+  const TipoDesperdicio({required this.nome, required this.dicaEconomia});
 }
 
-/// Extensão para obter dados de cada tipo de desperdício
-extension TipoDesperdicioExtension on TipoDesperdicio {
-  /// Nome amigável do tipo de desperdício
-  String get nome {
-    switch (this) {
-      case TipoDesperdicio.banhoLongo:
-        return "Banho longo";
-      case TipoDesperdicio.torneiraPingando:
-        return "Torneira pingando";
-      case TipoDesperdicio.vazamentoNoturno:
-        return "Vazamento noturno";
-      case TipoDesperdicio.descargaDemorada:
-        return "Descarga demorada";
-      case TipoDesperdicio.torneiraAberta:
-        return "Torneira aberta";
-      case TipoDesperdicio.chuveiroPingando:
-        return "Chuveiro pingando";
-    }
-  }
-
-  /// Consumo médio em litros por ocorrência
-  double get consumoMedioLitros {
-    switch (this) {
-      case TipoDesperdicio.banhoLongo:
-        return 90.0; // Diferença entre 15min (135L) e 5min (45L)
-      case TipoDesperdicio.torneiraPingando:
-        return 46.0; // Aproximadamente 46L por dia
-      case TipoDesperdicio.vazamentoNoturno:
-        return 200.0; // Estimativa de vazamento durante a noite
-      case TipoDesperdicio.descargaDemorada:
-        return 6.0; // Diferença entre descarga normal e demorada
-      case TipoDesperdicio.torneiraAberta:
-        return 12.0; // Torneira aberta durante escovação
-      case TipoDesperdicio.chuveiroPingando:
-        return 30.0; // Chuveiro pingando por hora
-    }
-  }
-
-  /// Descrição de como economizar
-  String get dicaEconomia {
-    switch (this) {
-      case TipoDesperdicio.banhoLongo:
-        return "Reduza seu banho para 5 minutos. Use um timer ou playlist de 5 minutos como guia.";
-      case TipoDesperdicio.torneiraPingando:
-        return "Conserte o vazamento. Uma torneira pingando pode desperdiçar até 46L por dia.";
-      case TipoDesperdicio.vazamentoNoturno:
-        return "Verifique tubulações e registros. Vazamentos noturnos indicam problemas sérios.";
-      case TipoDesperdicio.descargaDemorada:
-        return "Verifique a válvula da descarga. Considere instalar uma com duplo acionamento (3/6L).";
-      case TipoDesperdicio.torneiraAberta:
-        return "Feche a torneira enquanto escova os dentes ou ensaboa as mãos.";
-      case TipoDesperdicio.chuveiroPingando:
-        return "Troque a borracha do chuveiro ou o registro. Pingos constantes desperdiçam muito.";
-    }
-  }
-}
-
-/// Representa uma detecção de desperdício com cálculo de economia
+/// Classe que representa um único evento de desperdício detectado.
+/// O widget usa 'deteccao.tipo'. O serviço de cálculo
+/// provavelmente usa os outros campos.
 class DeteccaoDesperdicio {
+  final String? id;
   final TipoDesperdicio tipo;
-  final DateTime dataHora;
-  final double litrosDesperdicados;
-  final String? observacao;
+  final double duracaoSegundos;
+  final double gastoLitros;
+  final DateTime data;
+  
+  // Getter para compatibilidade com código legado
+  DateTime get dataHora => data;
+  
+  // Getter para cálculo de litros desperdiçados
+  double get litrosDesperdicados => gastoLitros;
 
   DeteccaoDesperdicio({
+    this.id,
     required this.tipo,
-    required this.dataHora,
-    double? litrosDesperdicados,
-    this.observacao,
-  }) : litrosDesperdicados = litrosDesperdicados ?? tipo.consumoMedioLitros;
-
-  /// Calcula a economia em metros cúbicos
-  double get metrosCubicosDesperdicados => litrosDesperdicados / 1000;
+    required this.duracaoSegundos,
+    required this.gastoLitros,
+    required this.data,
+  });
 }
