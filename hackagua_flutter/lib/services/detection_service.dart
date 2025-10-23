@@ -50,10 +50,15 @@ class DetectionService {
       final jsonData = json.decode(labelsData);
       _labels = List<String>.from(jsonData['classes']);
 
-      print('Modelo e labels carregados com sucesso.');
+      print('✅ Modelo e labels carregados com sucesso.');
       print('Labels: $_labels');
     } catch (e) {
-      print("Erro ao carregar o modelo: $e");
+      print("⚠️ Erro ao carregar o modelo TFLite: $e");
+      print("⚠️ O app funcionará sem classificação automática.");
+      print("⚠️ Para corrigir: reconverta o modelo usando convert_simple.py");
+      // Não bloqueia a aplicação - continua funcionando sem o modelo
+      _interpreter = null;
+      _labels = null;
     }
   }
 
@@ -126,6 +131,7 @@ class DetectionService {
 
   final preprocessedData = _preprocessAudio(normalized);
 
+        // Verifica se o modelo está carregado antes de usar
         if (_interpreter != null && _labels != null) {
           // O modelo espera um tensor com shape [80000]
           var input = preprocessedData;
