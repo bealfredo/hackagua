@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hackagua_flutter/screens/detection/detection_screen.dart';
+import 'package:hackagua_flutter/navigation/navbar.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'providers/auth_provider.dart';
 
@@ -25,6 +26,8 @@ final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Inicializar dados de localização para formatação de data
+  await initializeDateFormatting('pt_BR', null);
   // Inicializar Hive
   await Hive.initFlutter();
   runApp(const MyApp());
@@ -46,7 +49,7 @@ class MyApp extends StatelessWidget {
               primarySwatch: Colors.blue,
               visualDensity: VisualDensity.adaptivePlatformDensity,
             ),
-            home: const DetectionScreen(),
+            home: const MainScreen(),
           );
         },
       ),

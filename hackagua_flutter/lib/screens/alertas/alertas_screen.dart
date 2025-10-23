@@ -1,75 +1,142 @@
 import 'package:flutter/material.dart';
-import 'package:hackagua_flutter/models/desperdicio_agua.dart';
-import 'package:hackagua_flutter/screens/detalhes_economia/detalhes_economia_screen.dart';
-import 'package:hackagua_flutter/services/calculo_economia_service.dart';
+// (Adjust package name if needed)
+import 'package:hackagua_flutter/models/alerta.dart';
+import 'package:hackagua_flutter/models/enums.dart';
+import 'package:hackagua_flutter/services/alerta_service.dart';
 
-class AlertasScreen extends StatelessWidget {
-  const AlertasScreen({super.key});
+class AlertasScreen extends StatefulWidget {
+  const AlertasScreen({Key? key}) : super(key: key);
+
+  @override
+  State<AlertasScreen> createState() => _AlertasScreenState();
+}
+
+class _AlertasScreenState extends State<AlertasScreen> {
+  final AlertaService _alertaService = AlertaService();
+  late Future<List<Alerta>> _alertasFuturo;
+
+  @override
+  void initState() {
+    super.initState();
+    // Busca os alertas quando a tela é carregada
+    _fetchAlertas();
+  }
+
+  void _fetchAlertas() {
+    // Busca todos os alertas (não lidos e lidos)
+    // O service poderia ter métodos separados, mas vamos filtrar aqui
+    _alertasFuturo = _alertaService.getAlertasRecentes(limite: 10); // Busca mais para ter lidos
+  }
+
+  // Função para marcar alerta como lido (exemplo)
+  Future<void> _marcarComoLido(int? alertaId) async {
+    if (alertaId == null) return;
+    // TODO: Chamar um método no AlertaService para atualizar o status na API
+    print("Marcar alerta $alertaId como lido");
+    // Após sucesso na API, recarregar a lista
+    setState(() {
+      _fetchAlertas(); // Recarrega os dados
+    });
+  }
+
+   // Função para silenciar alerta (exemplo)
+  Future<void> _silenciarAlerta(int? alertaId) async {
+    if (alertaId == null) return;
+    // TODO: Chamar um método no AlertaService para suspender o alerta na API
+    print("Silenciar alerta $alertaId por 24h");
+     // Após sucesso na API, recarregar a lista
+    setState(() {
+      _fetchAlertas(); // Recarrega os dados (ou remove localmente)
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
-    // Cor de fundo padrão para a tela
-    const Color backgroundColor = Color(0xFFF7F9FA);
+    // Esta tela NÃO tem Scaffold, é controlada pelo MainScreen
+    return SafeArea(
+      child: FutureBuilder<List<Alerta>>(
+        future: _alertasFuturo,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text('Erro ao carregar alertas: ${snapshot.error}', textAlign: TextAlign.center),
+                ));
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            // Se não há dados ou a lista está vazia
+             final List<Alerta> alertas = []; // Lista vazia
+             final List<Alerta> naoLidos = [];
+             final List<Alerta> anteriores = [];
+            return _buildContent(context, alertas, naoLidos, anteriores);
+          }
 
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      // SafeArea para evitar que o conteúdo fique atrás da barra de status
-      body: SafeArea(
-        // SingleChildScrollView permite que a tela role
-        child: SingleChildScrollView(
-          child: Column(
-            // Alinha todo o conteúdo à esquerda
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. Cabeçalho "Alertas"
-              _buildHeader(),
+          // Filtra os alertas recebidos
+          final List<Alerta> alertas = snapshot.data!;
+          final List<Alerta> naoLidos = alertas.where((a) => !a.estaLido).toList();
+          final List<Alerta> anteriores = alertas.where((a) => a.estaLido).toList();
 
-              // 2. Seção "Não lidos"
-              _buildSectionHeader("Não lidos"),
-              _buildNaoLidoCard(),
-
-              // 3. Seção "Anteriores"
-              _buildSectionHeader("Anteriores"),
-
-              // Card "Crítico" - Vazamento Noturno
-              _buildAlertaComEconomiaCard(
-                context,
-                icon: Icons.warning_amber_rounded,
-                iconColor: Colors.red[700]!,
-                title: "Água detectada à noite",
-                subtitle:
-                    "Som de água detectado às 2:30 da madrugada. Verifique possível vazamento.",
-                tagText: "Crítico",
-                tagBgColor: Colors.red[50]!,
-                tagFgColor: Colors.red[800]!,
-                tipoDesperdicio: TipoDesperdicio.vazamentoNoturno,
-              ),
-
-              // Card "Informação" - Banho Longo
-              _buildAlertaComEconomiaCard(
-                context,
-                icon: Icons.info_outline,
-                iconColor: Colors.blue[700]!,
-                title: "Banho longo detectado",
-                subtitle:
-                    "Seu último banho durou 15 minutos. Considere reduzir o tempo para 5 minutos.",
-                tagText: "Informação",
-                tagBgColor: Colors.blue[50]!,
-                tagFgColor: Colors.blue[800]!,
-                tipoDesperdicio: TipoDesperdicio.banhoLongo,
-              ),
-
-              // Espaço no final
-              const SizedBox(height: 24),
-            ],
-          ),
-        ),
+          return _buildContent(context, alertas, naoLidos, anteriores);
+        },
       ),
     );
   }
 
-  /// Constrói o cabeçalho principal da tela
-  Widget _buildHeader() {
+  /// Constrói o conteúdo principal da tela (cabeçalho, seções, listas)
+  Widget _buildContent(BuildContext context, List<Alerta> todosAlertas, List<Alerta> naoLidos, List<Alerta> anteriores) {
+     return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Cabeçalho "Alertas" (com contagem dinâmica)
+                _buildHeader(naoLidos.length),
+
+                // 2. Seção "Não lidos"
+                _buildSectionHeader("Não lidos"),
+                if (naoLidos.isEmpty)
+                  _buildEmptyState("Nenhum alerta novo.")
+                else
+                  // Usa ListView.builder para o caso de ter múltiplos não lidos
+                  ListView.builder(
+                    shrinkWrap: true, // Para caber dentro do SingleChildScrollView
+                    physics: const NeverScrollableScrollPhysics(), // Desabilita scroll da lista interna
+                    itemCount: naoLidos.length,
+                    itemBuilder: (context, index) {
+                      return _buildNaoLidoCard(naoLidos[index]);
+                    },
+                  ),
+
+                // 3. Seção "Anteriores"
+                _buildSectionHeader("Anteriores"),
+                 if (anteriores.isEmpty)
+                  _buildEmptyState("Nenhum alerta anterior.")
+                else
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: anteriores.length,
+                    itemBuilder: (context, index) {
+                      // Usa o card genérico para alertas lidos
+                      return _buildAlertaAnteriorCard(anteriores[index]);
+                    },
+                  ),
+
+
+                // Espaço no final
+                const SizedBox(height: 24),
+              ],
+            ),
+          );
+  }
+
+
+  /// Constrói o cabeçalho principal da tela (com contagem dinâmica)
+  Widget _buildHeader(int countNaoLidos) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
       child: Column(
@@ -85,7 +152,7 @@ class AlertasScreen extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            "1 novo",
+            countNaoLidos == 1 ? "1 novo" : "$countNaoLidos novos", // Texto dinâmico
             style: TextStyle(fontSize: 16, color: Colors.grey[600]),
           ),
         ],
@@ -109,11 +176,13 @@ class AlertasScreen extends StatelessWidget {
   }
 
   /// Constrói o card especial "Não lido" com botões de ação
-  Widget _buildNaoLidoCard() {
-    // Cor de fundo especial para o card "Não lido"
+  Widget _buildNaoLidoCard(Alerta alerta) {
+    // Mapeia o TipoAlerta para a cor da tag/ícone "Atenção"
     final Color cardColor = Colors.yellow[50]!;
     final Color tagBgColor = Colors.orange[100]!;
     final Color tagFgColor = Colors.orange[800]!;
+    final Color iconColor = Colors.orange[700]!;
+    final IconData iconData = Icons.error_outline; // Ícone padrão para "Atenção"
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -132,18 +201,14 @@ class AlertasScreen extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.error_outline,
-                    color: Colors.orange[700],
-                    size: 28,
-                  ),
+                  Icon(iconData, color: iconColor, size: 28),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Alto consumo hoje",
+                          alerta.titulo, // Dinâmico
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -152,7 +217,7 @@ class AlertasScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          "Você já usou 18 minutos de água hoje, 60% da sua meta.",
+                          alerta.mensagem, // Dinâmico
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey[700],
@@ -162,7 +227,8 @@ class AlertasScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  _buildTag("Atenção", tagBgColor, tagFgColor),
+                  // A tag "Atenção" é fixa para não lidos neste design
+                  _buildTag("Atenção", tagBgColor, tagFgColor), 
                 ],
               ),
               const SizedBox(height: 12),
@@ -179,9 +245,7 @@ class AlertasScreen extends StatelessWidget {
                         "Marcar visto",
                         style: TextStyle(fontSize: 12),
                       ),
-                      onPressed: () {
-                        /* Lógica para marcar como visto */
-                      },
+                      onPressed: () => _marcarComoLido(alerta.id), // Chama a função
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.grey[800],
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -195,17 +259,12 @@ class AlertasScreen extends StatelessWidget {
                   const SizedBox(width: 8),
                   Flexible(
                     child: TextButton.icon(
-                      icon: const Icon(
-                        Icons.notifications_off_outlined,
-                        size: 16,
-                      ),
+                      icon: const Icon(Icons.notifications_off_outlined, size: 16),
                       label: const Text(
                         "Silenciar 24h",
                         style: TextStyle(fontSize: 12),
                       ),
-                      onPressed: () {
-                        /* Lógica para silenciar */
-                      },
+                      onPressed: () => _silenciarAlerta(alerta.id), // Chama a função
                       style: TextButton.styleFrom(
                         foregroundColor: Colors.grey[700],
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -214,6 +273,90 @@ class AlertasScreen extends StatelessWidget {
                   ),
                 ],
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Constrói um card de alerta padrão (para a seção "Anteriores")
+  /// Este método agora determina o ícone, cor e tag baseado no `alerta.tipo`.
+  Widget _buildAlertaAnteriorCard(Alerta alerta) {
+
+    // Determina a aparência baseado no TipoAlerta (do UML)
+    IconData iconData;
+    Color iconColor;
+    String tagText;
+    Color tagBgColor;
+    Color tagFgColor;
+
+    switch (alerta.tipo) {
+      case TipoAlerta.VAZAMENTO_DETECTADO:
+      case TipoAlerta.USO_DE_AGUA_NOTURNO:
+        iconData = Icons.warning_amber_rounded;
+        iconColor = Colors.red[700]!;
+        tagText = "Crítico";
+        tagBgColor = Colors.red[50]!;
+        tagFgColor = Colors.red[800]!;
+        break;
+      case TipoAlerta.BANHO_LONGO:
+        iconData = Icons.info_outline;
+        iconColor = Colors.blue[700]!;
+        tagText = "Informação";
+        tagBgColor = Colors.blue[50]!;
+        tagFgColor = Colors.blue[800]!;
+        break;
+      case TipoAlerta.ALTO_CONSUMO:
+        iconData = Icons.error_outline; // Mantendo o ícone de 'Atenção' se não for crítico/info
+        iconColor = Colors.orange[700]!;
+        tagText = "Atenção";
+        tagBgColor = Colors.orange[100]!;
+        tagFgColor = Colors.orange[800]!;
+        break;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Card(
+        elevation: 0.5,
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.grey[200]!, width: 1),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(iconData, color: iconColor, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      alerta.titulo, // Dinâmico
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      alerta.mensagem, // Dinâmico
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              _buildTag(tagText, tagBgColor, tagFgColor),
             ],
           ),
         ),
@@ -240,251 +383,17 @@ class AlertasScreen extends StatelessWidget {
     );
   }
 
-  /// Constrói um card de alerta com cálculo de economia de água
-  Widget _buildAlertaComEconomiaCard(
-    BuildContext context, {
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
-    required String tagText,
-    required Color tagBgColor,
-    required Color tagFgColor,
-    required TipoDesperdicio tipoDesperdicio,
-  }) {
-    // Criar uma detecção de desperdício
-    final deteccao = DeteccaoDesperdicio(
-      tipo: tipoDesperdicio,
-      data: DateTime.now(),
-      duracaoSegundos: 300, // 5 minutos padrão
-      gastoLitros: 60, // ~12L/min * 5min
-    );
-
-    // Calcular economia
-    final economia = CalculoEconomiaService.calcularEconomiaDesperdicio(
-      deteccao,
-    );
-    final economiaMensal = CalculoEconomiaService.calcularEconomiaMensal(
-      tipoDesperdicio,
-      diasPorMes: 30,
-      ocorrenciasPorDia: 1,
-    );
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Card(
-        elevation: 0.5,
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: Colors.grey[200]!, width: 1),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Cabeçalho do alerta
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(icon, color: iconColor, size: 28),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[800],
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          subtitle,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  _buildTag(tagText, tagBgColor, tagFgColor),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-              Divider(color: Colors.grey[300], height: 1),
-              const SizedBox(height: 16),
-
-              // Seção de Economia
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.green[50],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.green[200]!),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.water_drop,
-                          color: Colors.green[700],
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          "💰 Economia Potencial",
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green[900],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Economia por ocorrência
-                    _buildEconomiaItem(
-                      "Por ocorrência:",
-                      "${CalculoEconomiaService.formatarLitros(economia.litrosEconomizados)} • ${CalculoEconomiaService.formatarReais(economia.valorEconomizadoReais)}",
-                      Colors.green[700]!,
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Economia mensal
-                    _buildEconomiaItem(
-                      "Economia mensal:",
-                      "${CalculoEconomiaService.formatarLitros(economiaMensal.litrosEconomizadosMensal)} • ${CalculoEconomiaService.formatarReais(economiaMensal.valorEconomizadoMensalReais)}",
-                      Colors.green[800]!,
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Economia anual
-                    _buildEconomiaItem(
-                      "Economia anual:",
-                      CalculoEconomiaService.formatarReais(
-                        economiaMensal.economiaAnual,
-                      ),
-                      Colors.green[900]!,
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // Dica de economia
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.lightbulb_outline,
-                      color: Colors.blue[700],
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "💡 Dica para economizar",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue[900],
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            tipoDesperdicio.dicaEconomia,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.blue[800],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // Botão para ver detalhes
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => DetalhesEconomiaScreen(
-                          tipoDesperdicio: tipoDesperdicio,
-                          tituloAlerta: title,
-                          descricaoAlerta: subtitle,
-                        ),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.info_outline, size: 18),
-                  label: const Text("Ver detalhes completos"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[700],
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Widget auxiliar para exibir um item de economia
-  Widget _buildEconomiaItem(String label, String valor, Color color) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Flexible(
-          child: Text(
-            label, 
-            style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          valor,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-      ],
-    );
+  /// Widget para exibir quando uma lista de alertas está vazia
+  Widget _buildEmptyState(String message) {
+     return Padding(
+       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+       child: Center(
+         child: Text(
+          message, 
+          style: const TextStyle(color: Colors.grey, fontSize: 16),
+          textAlign: TextAlign.center,
+        )
+       ),
+     );
   }
 }
