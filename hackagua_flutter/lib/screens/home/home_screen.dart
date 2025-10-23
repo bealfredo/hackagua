@@ -1,12 +1,7 @@
-import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
-import 'package:hackagua_flutter/services/audio_inference_service.dart';
+import 'package:hackagua_flutter/models/enums.dart';
+import 'package:hackagua_flutter/services/detection_service.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:record/record.dart';
-import 'package:wav/wav.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,166 +11,61 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  bool _isCapturing = false;
-  bool _isProcessing = false; // Novo estado para indicar processamento
-  late AudioInferenceService _audioInferenceService;
-  late AudioRecorder _audioRecorder;
+  DetectionService? _detectionService;
+  String _statusMessage = "Iniciando...";
+  TipoEvento? _lastEvent;
+  double _lastDuration = 0.0;
 
   @override
   void initState() {
     super.initState();
-    _audioInferenceService = AudioInferenceService();
-    _audioRecorder = AudioRecorder();
-    // Inicializa o serviço de inferência
-    _initAudioService();
+    _initializeService();
   }
-  
-  Future<void> _initAudioService() async {
-    // O serviço será inicializado quando necessário
+
+  Future<void> _initializeService() async {
+    try {
+      _detectionService = DetectionService();
+      // Aguarda um pouco para garantir que o serviço está pronto
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (mounted) {
+        _startDetection();
+      }
+    } catch (e) {
+      print("Erro ao inicializar serviço: $e");
+      if (mounted) {
+        setState(() {
+          _statusMessage = "Erro ao iniciar";
+        });
+      }
+    }
+  }
+
+  void _startDetection() {
+    if (_detectionService == null) return;
+    
+    setState(() {
+      _statusMessage = "Monitorando...";
+    });
+    _detectionService!.startRecording(
+      onEvent: (tipo, duracao) {
+        setState(() {
+          _lastEvent = tipo;
+          _lastDuration = duracao;
+          _statusMessage = "Evento detectado!";
+        });
+      },
+    );
   }
 
   @override
   void dispose() {
-    _audioRecorder.dispose();
+    _detectionService?.dispose();
     super.dispose();
-  }
-
-  Future<void> _toggleCapture() async {
-    if (_isCapturing || _isProcessing) {
-      // Se já está capturando ou processando, não faz nada
-      return;
-    }
-
-    // 1. Verifica permissão
-    if (!await _audioRecorder.hasPermission()) {
-      _showErrorDialog("Permissão para usar o microfone foi negada.");
-      return;
-    }
-
-    setState(() {
-      _isCapturing = true;
-    });
-
-    // 2. Define o caminho do arquivo temporário
-    final Directory tempDir = await getTemporaryDirectory();
-    final String path = '${tempDir.path}/recording.wav';
-
-    // 3. Começa a gravar
-    try {
-      await _audioRecorder.start(
-        const RecordConfig(encoder: AudioEncoder.wav),
-        path: path,
-      );
-
-      // 4. Grava por 5 segundos
-      await Future.delayed(const Duration(seconds: 5));
-    } catch (e) {
-      _showErrorDialog("Não foi possível iniciar a gravação: ${e.toString()}");
-      setState(() {
-        _isCapturing = false;
-      });
-      return;
-    } finally {
-      if (await _audioRecorder.isRecording()) {
-        // 5. Para a gravação
-        await _audioRecorder.stop();
-      }
-    }
-
-    setState(() {
-      _isCapturing = false;
-      _isProcessing = true; // Inicia o processamento
-    });
-
-    // 6. Processa o áudio e mostra o resultado
-    await _processAndInfer(path);
-
-    setState(() {
-      _isProcessing = false; // Finaliza o processamento
-    });
-  }
-
-  Future<void> _processAndInfer(String path) async {
-    try {
-      // Lê o arquivo .wav
-      final file = File(path);
-      if (!await file.exists()) {
-        _showErrorDialog("Arquivo de áudio não encontrado.");
-        return;
-      }
-      final wav = await Wav.readFile(path);
-
-      // Converte o áudio para o formato que o modelo espera (Float32List)
-      // O modelo espera um array de 1 dimensão.
-      final audioBuffer = wav.channels.expand((ch) => ch).toList();
-      final floatBuffer = Float32List.fromList(
-        audioBuffer.map((e) => e.toDouble()).toList(),
-      );
-
-      // Executa a inferência
-      final output = await _audioInferenceService.runInference(floatBuffer);
-
-      // Encontra o resultado com maior probabilidade
-      String bestLabel = 'N/A';
-      double highestProb = 0.0;
-      output.forEach((label, prob) {
-        if (prob > highestProb) {
-          highestProb = prob;
-          bestLabel = label;
-        }
-      });
-
-      // Mostra o resultado
-      _showResultDialog(bestLabel, highestProb);
-    } catch (e) {
-      _showErrorDialog("Falha ao processar o áudio: ${e.toString()}");
-    }
-  }
-
-  void _showResultDialog(String label, double probability) {
-    if (!mounted) return;
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Resultado da Análise"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Som detectado: $label"),
-            const SizedBox(height: 8),
-            Text("Probabilidade: ${(probability * 100).toStringAsFixed(2)}%"),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text("OK"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showErrorDialog(String message) {
-    if (!mounted) return;
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Erro"),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text("OK"),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
+    // ... (o resto do build method continua abaixo)
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       body: SafeArea(
@@ -185,12 +75,16 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildHeader(),
+              const SizedBox(height: 16),
+              _buildStatusIndicator(),
               const SizedBox(height: 24),
               _buildSimularBanhoCard(),
               const SizedBox(height: 24),
               _buildConsumoDiarioCard(),
-              const SizedBox(height: 24),
-              _buildAlertasRecentesCard(context),
+              if (_lastEvent != null) ...[
+                const SizedBox(height: 24),
+                _buildAlertasRecentesCard(context),
+              ],
               const SizedBox(height: 24),
               _buildActionButtons(),
             ],
@@ -213,14 +107,15 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Row(
                 children: [
-                  Icon(Icons.water_drop_outlined, color: Colors.blue[700]),
-                  const SizedBox(width: 8),
-                  const Flexible(
+                  Image.asset('assets/images/logo.png', height: 50),
+                  const SizedBox(width: 12),
+                  Flexible(
                     child: Text(
-                      "Escuta d'Água",
+                      "EscutaD'Agua",
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
+                        color: Colors.blue[800],
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -235,28 +130,34 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFE8F5E9),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: const Row(
-            children: [
-              Icon(Icons.play_circle_outline, color: Color(0xFF2E7D32)),
-              SizedBox(width: 8),
-              Text(
-                'Monitorando em\ncasa',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Color(0xFF2E7D32),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
+        // O indicador de status foi removido daqui
       ],
+    );
+  }
+
+  Widget _buildStatusIndicator() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8F5E9),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.play_circle_outline, color: Color(0xFF2E7D32)),
+          SizedBox(width: 8),
+          Text(
+            _statusMessage, // Usa a mensagem de status
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Color(0xFF2E7D32),
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -348,6 +249,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAlertasRecentesCard(BuildContext context) {
+    // Mostra o último evento detectado ou um placeholder
+    final hasEvent = _lastEvent != null;
+    String title = hasEvent
+        ? "Último Evento Detectado"
+        : "Nenhum alerta recente";
+    String subtitle = hasEvent
+        ? 'Tipo: ${_lastEvent!.toString().split('.').last}, Duração: ${_lastDuration.toStringAsFixed(1)}s'
+        : 'O sistema está monitorando o consumo de água.';
+
     return Card(
       elevation: 0,
       color: const Color(0xFFF0F4F8),
@@ -387,18 +297,18 @@ class _HomeScreenState extends State<HomeScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                 border: Border.all(color: Colors.grey[300]!),
+                border: Border.all(color: Colors.grey[300]!),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Alto consumo hoje',
+                  Text(
+                    title, // Título dinâmico
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Você já usou 18 minutos de água hoje, 60% da sua meta.',
+                    subtitle, // Subtítulo dinâmico
                     style: TextStyle(color: Colors.grey[700], fontSize: 14),
                   ),
                 ],
@@ -421,26 +331,19 @@ class _HomeScreenState extends State<HomeScreen> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: InkWell(
-              onTap: _toggleCapture,
+              onTap: () {
+                // Para a detecção e reinicia
+                _detectionService?.dispose();
+                _initializeService();
+              },
               borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16.0),
                 child: Column(
                   children: [
-                    if (_isProcessing)
-                      const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    else
-                      Icon(_isCapturing ? Icons.pause : Icons.mic_none),
-                    const SizedBox(height: 8),
-                    Text(
-                      _isCapturing
-                          ? 'Pausar'
-                          : (_isProcessing ? 'Analisando...' : 'Pausar'),
-                    ),
+                    Icon(Icons.mic),
+                    SizedBox(height: 8),
+                    Text('Iniciar Detecção'),
                   ],
                 ),
               ),

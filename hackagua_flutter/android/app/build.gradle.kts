@@ -48,5 +48,5 @@ flutter {
 }
 
 dependencies {
-    implementation("org.tensorflow:tensorflow-lite:2.16.1")
 }
+

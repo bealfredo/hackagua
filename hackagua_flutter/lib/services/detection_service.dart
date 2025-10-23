@@ -50,8 +50,14 @@ class DetectionService {
 
   Future<void> startRecording(
       {required Function(TipoEvento, double) onEvent}) async {
-    // O método 'hasPermission' existe em AudioRecorder, está correto.
-    if (await _audioRecorder.hasPermission()) {
+    try {
+      // Verifica e solicita permissão antes de usar o gravador
+      final hasPermission = await _audioRecorder.hasPermission();
+      if (!hasPermission) {
+        print("Permissão de áudio não concedida.");
+        return;
+      }
+
       _recordingTimer =
           Timer.periodic(const Duration(seconds: _duration), (timer) async {
         if (_startTime != null) {
@@ -65,6 +71,8 @@ class DetectionService {
         _startIntervalRecording();
       });
       _startIntervalRecording();
+    } catch (e) {
+      print("Erro ao iniciar gravação: $e");
     }
   }
 
@@ -144,12 +152,18 @@ class DetectionService {
     }
 
     // Limiar de confiança para considerar a detecção válida
-    if (maxValue > 0.8 && _labels != null) {
-      final label = _labels![maxIndex];
-      print(
-          'Label detectado: $label com confiança de ${maxValue.toStringAsFixed(2)}');
+    if (_labels == null || _labels!.isEmpty) {
+      return null;
+    }
+
+    final label = _labels![maxIndex];
+    print(
+        'DEBUG: Maior probabilidade: $label com confiança de ${maxValue.toStringAsFixed(2)}');
+
+    if (maxValue > 0.5) {
       return _mapLabelToTipoEvento(label);
     }
+
     return null;
   }
 
@@ -187,9 +201,15 @@ class DetectionService {
     }
   }
 
-  void dispose() {
+  Future<void> dispose() async {
     _recordingTimer?.cancel();
+    // Verifica se o gravador está gravando antes de parar e liberar.
+    final isRecording = await _audioRecorder.isRecording();
+    if (isRecording) {
+      await _audioRecorder.stop();
+    }
     _audioRecorder.dispose();
     _interpreter?.close();
+    print("DetectionService finalizado.");
   }
 }

@@ -138,17 +138,20 @@ class _HomeScreenState extends State<HomeScreen> {
         // Lado Esquerdo: Logo e Data
         Row(
           children: [
-            Icon(Icons.water_drop_outlined, color: Colors.blue[700], size: 30),
-            const SizedBox(width: 8),
+            Image.asset(
+              'assets/images/logo.png',
+              height: 40, // Aumenta a altura da logo
+            ),
+            const SizedBox(width: 12), // Aumenta o espaçamento
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Escuta d'Água",
+                  "HackÁgua", // Nome mais direto
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: 24, // Aumenta o tamanho da fonte
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey[900],
+                    color: Colors.blue[800], // Cor mais forte
                   ),
                 ),
                 Text(
